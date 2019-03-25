@@ -1,0 +1,180 @@
+<?php
+
+class PlanerController extends PluginController
+{
+
+    static protected $widgets = null;
+
+    public function index_action()
+    {
+        Navigation::activateItem("/browse/va_planer");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/veranstaltungsplanung.js");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/core/main.js");
+        PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/core/main.css");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/interaction/main.js");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/daygrid/main.js");
+        PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/daygrid/main.css");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/timegrid/main.js");
+        PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/timegrid/main.css");
+
+        $this->filters = $this->getWidgets();
+
+    }
+
+    public function change_type_action()
+    {
+        $this->redirect("planer/index");
+    }
+
+    public function fetch_dates_action()
+    {
+        $start = strtotime(Request::get("start"));
+        $end = strtotime(Request::get("end"));
+
+        $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_DEFAULTDATE', $start + floor(($end - $start) / 2));
+
+        $query = new \Veranstaltungsplanung\SQLQuery(
+            "termine",
+            "veranstaltungsplanung_termine"
+        );
+
+        $query->where("start", "`termine`.`end_time` >= :start", array(
+            'start' => $start
+        ));
+        $query->where("end", "`termine`.`date` <= :end", array(
+            'end' => $end
+        ));
+
+        switch (Request::get("object_type")) {
+            case "courses":
+                $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id"));
+                if (Request::get("institut_id") && Request::get("institut_id") !== "all") {
+                    $query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
+                    $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id", array(
+                        'institut_id' => Request::get("institut_id")
+                    ));
+                }
+                $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', Request::get("semester_id"));
+                if (Request::get("semester_id") && Request::get("semester_id") !== "all") {
+                    $semester = Semester::find(Request::get("semester_id"));
+                    $query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
+                    $query->where("semester_select", "`seminare`.`start_time` <= :semester_start AND (`seminare`.`duration_time` = -1 OR `seminare`.`duration_time` + `seminare`.`start_time` >= :semester_start OR (`seminare`.`duration_time` = '0' AND `seminare`.`start_time` = :semester_start))", array(
+                        'semester_start' => $semester['beginn']
+                    ));
+                }
+                break;
+            case "teachers":
+                break;
+            case "resources":
+                break;
+        }
+        foreach (PluginManager::getInstance()->getPlugins("VeranstaltungsplanungFilter") as $plugin) {
+            foreach ($plugin->getVeranstaltungsplanungFilter() as $name => $filter) {
+                $this->filters[$name] = $filter;
+
+            }
+        }
+        $termine = array();
+        foreach ($query->fetchAll("CourseDate") as $termin) {
+            $termine[] = array(
+                'id' => $termin->getId(),
+                'title' => $termin->course['name'],
+                'start' => date("r", $termin['date']),
+                'end' => date("r", $termin['end_time']),
+                'classes' => array("course_".$termin['range_id'])
+            );
+        }
+
+        $this->render_json($termine);
+    }
+
+    public function getWidgets() {
+        if (self::$widgets) {
+            return self::$widgets;
+        }
+
+        $filters = array();
+
+        $semester_select = new SelectWidget(
+            _("Semester"),
+            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
+            "semester_id"
+        );
+        $semester_select->class = "courses";
+        $semester_select->addElement(new SelectElement(
+            "",
+            "",
+            false),
+            'select-'
+        );
+        foreach (array_reverse(Semester::getAll()) as $semester) {
+            $semester_select->addElement(new SelectElement(
+                $semester->getId(),
+                $semester['name'],
+                $semester->getId() === $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE),
+                'select-'.$semester->getId()
+            );
+        }
+        $filters['semester_id'] = array(
+            'widget' => $semester_select,
+            'object_type' => "courses",
+            'value' => $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE
+        );
+
+
+        $institutes = new SelectWidget(
+            _("Einrichtung"),
+            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
+            "institut_id"
+        );
+        $institutes->class = "courses";
+        $institutes->addElement(new SelectElement(
+            "",
+            "",
+            false),
+            'select-'
+        );
+        foreach (Institute::getMyInstitutes() as $institut) {
+            $institutes->addElement(new SelectElement(
+                $institut['Institut_id'],
+                ($institut['is_fak'] ? "" : "  ").$institut['Name'],
+                $institut['Institut_id'] === $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT),
+                'select-'.$institut['Institut_id']
+            );
+        }
+
+        $filters['institut_id'] = array(
+            'widget' => $institutes,
+            'object_type' => "courses",
+            'value' => $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT
+        );
+
+        foreach (PluginManager::getInstance()->getPlugins("VeranstaltungsplanungFilter") as $plugin) {
+            foreach ($plugin->getVeranstaltungsplanungFilter() as $name => $filter) {
+                $this->filters[$name] = $filter;
+            }
+        }
+
+        self::$widgets = $filters;
+        return $filters;
+    }
+
+
+    public function settings_action()
+    {
+        if (Request::isPost()) {
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_LINE', Request::get("line"));
+
+            $GLOBALS['user']->cfg->store(
+                'VERANSTALTUNGSPLANUNG_HIDDENDAYS',
+                json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("hidden_days")))
+            );
+            $GLOBALS['user']->cfg->store(
+                'VERANSTALTUNGSPLANUNG_DISABLED_FILTER',
+                json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("filters")))
+            );
+            PageLayout::postSuccess(_("Einstellungen wurden gespeichert."));
+            $this->redirect("planer/index");
+        }
+    }
+}
