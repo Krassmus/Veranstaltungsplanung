@@ -32,6 +32,7 @@ class PlanerController extends PluginController
         $end = strtotime(Request::get("end"));
 
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_DEFAULTDATE', $start + floor(($end - $start) / 2));
+        $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_OBJECT_TYPE', Request::get("object_type"));
 
         $query = new \Veranstaltungsplanung\SQLQuery(
             "termine",
@@ -86,6 +87,91 @@ class PlanerController extends PluginController
         }
 
         $this->render_json($termine);
+    }
+
+    public function get_collisions_action() {
+        $termin = CourseDate::find(Request::option("termin_id"));
+        $start = strtotime(Request::get("start"));
+        $end = strtotime(Request::get("end"));
+
+
+        $output = array('events' => array());
+        if (!$termin['metadate_id']) {
+            $teacher_ids = array();
+            $termin_ids = array($termin->getId());
+            foreach ($termin->dozenten as $dozent) {
+                $teacher_ids[] = $dozent['user_id'];
+            };
+            if (!count($teacher_ids)) {
+                $statement = DBManager::get()->prepare("
+                    SELECT user_id 
+                    FROM seminar_user
+                    WHERE Seminar_id = ?
+                        AND status = 'dozent'
+                ");
+                $statement->execute(array($termin['range_id']));
+                $teacher_ids = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
+
+                $statement = DBManager::get()->prepare("
+                    SELECT termine.*
+                    FROM termine
+                        LEFT JOIN termin_related_persons ON (termine.termin_id = termin_related_persons.range_id)
+                        LEFT JOIN seminar_user ON (seminar_user.Seminar_id = termine.range_id)
+                    WHERE termine.termin_id != :termin_id
+                        AND termine.`date` <= :end
+                        AND termine.`end_time` >= :start
+                        AND ((termin_related_persons.user_id IN (:teacher_ids)) OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids)))
+                 ");
+                $statement->execute(array(
+                    'termin_id' => $termin->getId(),
+                    'start' => $start,
+                    'end' => $end,
+                    'teacher_ids' => $teacher_ids
+                ));
+                $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($termine_data as $data) {
+                    $termin_ids[] = $data['termin_id'];
+                    $output['events'][] = array(
+                        'id' => $data['termin_id'],
+                        'start' => date("r", $data['date']),
+                        'end' => date("r", $data['end_time']),
+                        'reason' => _("Lehrender hat dort keine Zeit")
+                    );
+                }
+
+
+            }
+            //check for blocked resource:
+            if ($termin->room_assignment) {
+                DBManager::get()->prepare("
+                    SELECT termine.*
+                    FROM termine
+                        INNER JOIN resources_assign ON (resources_assign.assign_user_id = termine.termin_id)
+                    WHERE resources_assign.resource_id = :resource_id
+                        termine.termin_id NOT IN (:termin_ids)
+                        AND termine.`date` <= :end
+                        AND termine.`end_time` >= :start
+                ");
+                $statement->execute(array(
+                    'termin_ids' => $termin_ids,
+                    'start' => $start,
+                    'end' => $end,
+                    'resource_id' => $termin->room_assignment['resource_id']
+                ));
+                $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($termine_data as $data) {
+                    $termin_ids[] = $data['termin_id'];
+                    $output['events'][] = array(
+                        'id' => $data['termin_id'],
+                        'start' => date("r", $data['date']),
+                        'end' => date("r", $data['end_time']),
+                        'reason' => _("Raum ist dort schon belegt.")
+                    );
+                }
+            }
+        }
+
+        $this->render_json($output);
     }
 
     public function getWidgets() {

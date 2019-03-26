@@ -2,7 +2,71 @@ if (typeof STUDIP.Veranstaltungsplanung === "undefined") {
     STUDIP.Veranstaltungsplanung = {};
 }
 
+STUDIP.Veranstaltungsplanung.dragging = false;
+STUDIP.Veranstaltungsplanung.changeEventStart = function (info) {
+    var termin_id = info.event.id;
+    STUDIP.Veranstaltungsplanung.dragging = true;
+    //Display blocked areas:
+    jQuery.ajax({
+        "url": STUDIP.URLHelper.getURL("plugins.php/veranstaltungsplanung/planer/get_collisions"),
+        "data": {
+            "termin_id": info.event.id,
+            "start": STUDIP.Veranstaltungsplanung.calendar.view.currentStart.toUTCString(),
+            "end": STUDIP.Veranstaltungsplanung.calendar.view.currentEnd.toUTCString()
+        },
+        "dataType": "json",
+        "success": function (output) {
+            if (STUDIP.Veranstaltungsplanung.dragging) {
+                for (var i in output.events) {
+                    STUDIP.Veranstaltungsplanung.calendar.addEvent({
+                        'start': output.events[i].start,
+                        'end': output.events[i].end,
+                        'rendering': "background",
+                        'backgroundColor': "darkred",
+                        'color': "white",
+                        'classNames': "blocked",
+                        'editable': false
+                    });
+                }
+            }
+        }
+    });
+};
+STUDIP.Veranstaltungsplanung.changeEventEnd = function (info) {
+    STUDIP.Veranstaltungsplanung.dragging = false;
+    var events = STUDIP.Veranstaltungsplanung.calendar.getEvents();
+    for (var i in events) {
+        for (var k in events[i].classNames) {
+            if (events[i].classNames[k] === "blocked") {
+                events[i].remove();
+            }
+        }
+    }
+
+    //AJAX to change; if there is a collision open a dialog and ask what to do
+};
+
+STUDIP.Veranstaltungsplanung.appendFragment = function () {
+    var fragment = "object_type=" + encodeURIComponent(jQuery("#object_type").val());
+
+    jQuery(".date_fetch_params").each(function () {
+        fragment += "&" + jQuery(this).attr("id") + "=" + encodeURIComponent(jQuery(this).val());
+    });
+    window.location.hash = fragment;
+};
+
 jQuery(function () {
+    //extract fragment:
+    var fragment = window.location.hash.substr(1).split("&");
+    for (var i in fragment) {
+        var params = fragment[i].split("=");
+        if (params[0]) {
+            jQuery("#" + params[0]).val(decodeURIComponent(params[1]));
+            jQuery(".sidebar select[name=" + params[0] + "], .sidebar input[name=" + params[0] + "]").val(decodeURIComponent(params[1]));
+            jQuery(".sidebar select[name=" + params[0] + "], .sidebar input[name=" + params[0] + "]").trigger("change");
+        }
+    }
+
     jQuery(".sidebar form").on("submit", function () {
         return false;
     });
@@ -19,19 +83,20 @@ jQuery(function () {
         }
         jQuery(".sidebar-widget ." + object_type).closest(".sidebar-widget").show();
 
-
-
     });
     jQuery(".sidebar select, .sidebar input").on("change", function () {
         var name = jQuery(this).attr("name");
         jQuery("#" + name).val(jQuery(this).val());
-        calendar.refetchEvents();
+        STUDIP.Veranstaltungsplanung.appendFragment();
+        STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
     });
+
+
+
 
     var calendarEl = document.getElementById('calendar');
 
-    console.log(STUDIP.Veranstaltungsplanung.hidden_days);
-    var calendar = new FullCalendar.Calendar(calendarEl, {
+    STUDIP.Veranstaltungsplanung.calendar = new FullCalendar.Calendar(calendarEl, {
         plugins: [ 'interaction', 'timeGrid' ],
         defaultView: 'timeGridWeek',
         allDaySlot: false,
@@ -51,41 +116,22 @@ jQuery(function () {
         scrollTime: '07:30:00',
         selectable: true,
         selectMirror: true,
-        eventDragStart: function (info) {
-            var termin_id = info.event.id;
-            calendar.addEvent({
-                'title': "Geblockt",
-                'start': "2019-03-26 14:15",
-                'end': "2019-03-26 16:00",
-                'rendering': "background",
-                'backgroundColor': "darkred",
-                'color': "white",
-                'classNames': "blocked",
-                'editable': false
-            });
-        },
-        eventDragStop: function () {
-            var events = calendar.getEvents();
-            for (var i in events) {
-                for (var k in events[i].classNames) {
-                    if (events[i].classNames[k] == "blocked") {
-                        events[i].remove();
-                    }
-                }
-            }
-        },
-        select: function(arg) {
+        eventResizeStart: STUDIP.Veranstaltungsplanung.changeEventStart,
+        eventResizeStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
+        eventDragStart: STUDIP.Veranstaltungsplanung.changeEventStart,
+        eventDragStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
+        select: function (arg) {
             var title = prompt('Event Title:');
             if (title) {
-                calendar.addEvent({
+                STUDIP.Veranstaltungsplanung.addEvent({
                     title: title,
                     start: arg.start,
                     end: arg.end,
                     allDay: arg.allDay,
                     textColor: 'black'
-                })
+                });
             }
-            calendar.unselect()
+            STUDIP.Veranstaltungsplanung.unselect();
         },
         editable: true,
         defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : null,
@@ -107,5 +153,5 @@ jQuery(function () {
         }
     });
 
-    calendar.render();
+    STUDIP.Veranstaltungsplanung.calendar.render();
 });

@@ -8,6 +8,7 @@
 <div id="calendar"
      data-default_date="<?= date("r", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTDATE) ?>"></div>
 
+<input type="hidden" class="date_fetch_params" id="object_type" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) ?>">
 <? foreach ($filters as $name => $filter) : ?>
     <input type="hidden" class="date_fetch_params" id="<?= htmlReady($name) ?>" value="<?= htmlReady($filter['value']) ?>">
 <? endforeach ?>
@@ -29,19 +30,19 @@ $select->class = "change_type";
 $select->addElement(new SelectElement(
     "courses",
     _("Veranstaltungen"),
-    false),
+    $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE === "courses"),
     'select-courses'
 );
 $select->addElement(new SelectElement(
     "teachers",
     _("Lehrende"),
-    false),
+    $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE === "teachers"),
     'select-teacher'
 );
 $select->addElement(new SelectElement(
     "resources",
     _("Ressourcen"),
-    false),
+    $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE === "resources"),
     'select-resources'
 );
 Sidebar::Get()->addWidget($select);
