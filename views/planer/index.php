@@ -47,8 +47,11 @@ $select->addElement(new SelectElement(
 );
 Sidebar::Get()->addWidget($select);
 
-foreach ($filters as $filter) {
-    Sidebar::Get()->addWidget($filter['widget']);
+$disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true);
+foreach ($filters as $name => $filter) {
+    if (!in_array($name, $disabled_filters)) {
+        Sidebar::Get()->addWidget($filter['widget']);
+    }
 }
 
 $actions = new ActionsWidget();

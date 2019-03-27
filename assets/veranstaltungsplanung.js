@@ -22,7 +22,9 @@ STUDIP.Veranstaltungsplanung.changeEventStart = function (info) {
                         'start': output.events[i].start,
                         'end': output.events[i].end,
                         'rendering': "background",
-                        'backgroundColor': "darkred",
+                        'backgroundColor': output.events[i].conflict === "original"
+                            ? "yellow"
+                            : "darkred",
                         'color': "white",
                         'classNames': "blocked",
                         'editable': false

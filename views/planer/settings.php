@@ -38,7 +38,7 @@
             <? foreach ($controller->getWidgets() as $name => $widget_data) {
                 if ($widget_data['object_type'] === $type) : ?>
                     <label>
-                        <input type="checkbox" name="filter[<?= htmlReady($name) ?>]" value="1"<?= !in_array($name, $filter_names) ? "checked" : "" ?>>
+                        <input type="checkbox" name="filter[]" value="<?= htmlReady($name) ?>"<?= !in_array($name, $filter_names) ? "checked" : "" ?>>
                         <?= htmlReady($widget_data['widget']->title) ?>
                     </label>
                 <? endif;

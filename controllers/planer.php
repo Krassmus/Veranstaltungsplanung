@@ -135,6 +135,7 @@ class PlanerController extends PluginController
                         'id' => $data['termin_id'],
                         'start' => date("r", $data['date']),
                         'end' => date("r", $data['end_time']),
+                        'conflict' => "teacher_room",
                         'reason' => _("Lehrender hat dort keine Zeit")
                     );
                 }
@@ -171,6 +172,12 @@ class PlanerController extends PluginController
             }
         }
 
+        $output['events'][] = array(
+            'id' => $termin['termin_id'],
+            'start' => date("r", $termin['date']),
+            'end' => date("r", $termin['end_time']),
+            'conflict' => "original"
+        );
         $this->render_json($output);
     }
 
@@ -255,9 +262,11 @@ class PlanerController extends PluginController
                 'VERANSTALTUNGSPLANUNG_HIDDENDAYS',
                 json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("hidden_days")))
             );
+            $all_filters = array_keys($this->getWidgets());
+            $filters = array_values(array_diff($all_filters, Request::getArray("filter")));
             $GLOBALS['user']->cfg->store(
                 'VERANSTALTUNGSPLANUNG_DISABLED_FILTER',
-                json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("filters")))
+                json_encode($filters)
             );
             PageLayout::postSuccess(_("Einstellungen wurden gespeichert."));
             $this->redirect("planer/index");
