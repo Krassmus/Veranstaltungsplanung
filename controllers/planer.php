@@ -63,6 +63,14 @@ class PlanerController extends PluginController
                         'semester_start' => $semester['beginn']
                     ));
                 }
+                $GLOBALS['user']->cfg->store('ADMIN_COURSES_SEARCHTEXT', Request::get("course_search"));
+                if (Request::get("course_search")) {
+                    $query->join("dozenten_su", "seminar_user", "`seminare`.`Seminar_id` = dozenten_su.Seminar_id AND dozenten_su.status = 'dozent'");
+                    $query->join("dozent", "auth_user_md5", "dozent.user_id = dozenten_su.user_id");
+                    $query->where("search", "`seminare`.name LIKE :search OR `seminare`.`VeranstaltungsNummer` LIKE :search OR CONCAT(dozent.Vorname, ' ', dozent.Nachname, ' ', dozent.username, ' ', dozent.Email) LIKE :search", array(
+                        'search' => "%".Request::get("course_search")."%"
+                    ));
+                }
                 break;
             case "teachers":
                 break;
@@ -187,6 +195,22 @@ class PlanerController extends PluginController
         }
 
         $filters = array();
+
+        $textsearch = new SearchWidget();
+        $textsearch->addNeedle(
+            _("Veranstaltung suchen"),
+            "course_search",
+            null,
+            null,
+            null,
+            $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT
+        );
+        $filters['course_search'] = array(
+            'widget' => $textsearch,
+            'object_type' => "courses",
+            'value' => $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT
+        );
+
 
         $semester_select = new SelectWidget(
             _("Semester"),

@@ -52,7 +52,9 @@ STUDIP.Veranstaltungsplanung.appendFragment = function () {
     var fragment = "object_type=" + encodeURIComponent(jQuery("#object_type").val());
 
     jQuery(".date_fetch_params").each(function () {
-        fragment += "&" + jQuery(this).attr("id") + "=" + encodeURIComponent(jQuery(this).val());
+        if (jQuery(this).val() && (jQuery(this).attr("id") !== "object_type")) {
+            fragment += "&" + jQuery(this).attr("id") + "=" + encodeURIComponent(jQuery(this).val());
+        }
     });
     window.location.hash = fragment;
 };
@@ -156,4 +158,6 @@ jQuery(function () {
     });
 
     STUDIP.Veranstaltungsplanung.calendar.render();
+
+    STUDIP.Veranstaltungsplanung.appendFragment();
 });
