@@ -1,0 +1,55 @@
+#study_area_tree {
+    ol.children {
+        list-style-type: none;
+        padding: 0px;
+
+        > li {
+            .flex();
+            .flex-justify-content(space-between);
+            .flex-align-items(flex-start);
+
+            margin-bottom: 2px;
+            margin-left: 20px;
+
+            .checker {
+                cursor: pointer;
+                width: 20px;
+
+                input,
+                input:checked + img,
+                input + img + img {
+                    display: none;
+                }
+
+                input + img,
+                input:checked + img + img {
+                    display: inline-block;
+                }
+            }
+        }
+    }
+    .up {
+        .flex();
+        .flex-justify-content(space-between);
+        .flex-align-items(flex-start);
+        .unsetter {
+            display: inline-block;
+            width: 20px;
+
+            input,
+            input + img + img,
+            input:checked + img {
+                display: none;
+            }
+
+            input + img {
+                cursor: pointer;
+            }
+
+            input:checked + img + img {
+                display: inline-block
+            }
+        }
+    }
+
+}

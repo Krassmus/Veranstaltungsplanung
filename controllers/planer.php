@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__."/../lib/StudyAreaSelector.php";
+
 class PlanerController extends PluginController
 {
 
@@ -16,6 +18,8 @@ class PlanerController extends PluginController
         PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/daygrid/main.css");
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/timegrid/main.js");
         PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/timegrid/main.css");
+
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
 
         $this->filters = $this->getWidgets();
 
@@ -51,7 +55,8 @@ class PlanerController extends PluginController
                 $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id"));
                 if (Request::get("institut_id") && Request::get("institut_id") !== "all") {
                     $query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
-                    $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id", array(
+                    $query->join("Institute", "`Institute`.`Institut_id` = `seminare`.`Institut_id`");
+                    $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", array(
                         'institut_id' => Request::get("institut_id")
                     ));
                 }
@@ -69,6 +74,12 @@ class PlanerController extends PluginController
                     $query->join("dozent", "auth_user_md5", "dozent.user_id = dozenten_su.user_id");
                     $query->where("search", "`seminare`.name LIKE :search OR `seminare`.`VeranstaltungsNummer` LIKE :search OR CONCAT(dozent.Vorname, ' ', dozent.Nachname, ' ', dozent.username, ' ', dozent.Email) LIKE :search", array(
                         'search' => "%".Request::get("course_search")."%"
+                    ));
+                }
+                $GLOBALS['user']->cfg->store('ADMIN_COURSES_VISIBILITY', Request::get("visibility"));
+                if (Request::get("visibility")) {
+                    $query->where("visibility", "`seminare`.`visible` = :visible", array(
+                        'visible' => Request::get("visibility") === "visible" ? 1 : 0
                     ));
                 }
                 break;
@@ -198,13 +209,14 @@ class PlanerController extends PluginController
 
         $textsearch = new SearchWidget();
         $textsearch->addNeedle(
-            _("Veranstaltung suchen"),
-            "course_search",
-            null,
+            _('Freie Suche'),
+            'course_search',
+            true,
             null,
             null,
             $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT
         );
+        $textsearch->class = "courses";
         $filters['course_search'] = array(
             'widget' => $textsearch,
             'object_type' => "courses",
@@ -259,12 +271,49 @@ class PlanerController extends PluginController
                 'select-'.$institut['Institut_id']
             );
         }
-
         $filters['institut_id'] = array(
             'widget' => $institutes,
             'object_type' => "courses",
             'value' => $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT
         );
+
+        $filters['study_area_id'] = array(
+            'widget' => new StudyAreaSelector(),
+            'object_type' => "courses",
+            'value' => explode(",", $GLOBALS['user']->cfg->ADMIN_COURSES_STUDYAREAS)
+        );
+
+
+        $visibility = new SelectWidget(
+            _("Sichtbarkeit"),
+            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
+            "visibility"
+        );
+        $visibility->class = "courses";
+        $visibility->addElement(new SelectElement(
+            "",
+            "",
+            false),
+            'select-'
+        );
+        $visibility->addElement(new SelectElement(
+            "visible",
+            _("Nur sichtbare"),
+            $GLOBALS['user']->cfg->ADMIN_COURSES_VISIBILITY === "visible"),
+            'select-visible'
+        );
+        $visibility->addElement(new SelectElement(
+            "invisible",
+            _("Nur versteckte"),
+            $GLOBALS['user']->cfg->ADMIN_COURSES_VISIBILITY === "invisible"),
+            'select-invisible'
+        );
+        $filters['visibility'] = array(
+            'widget' => $visibility,
+            'object_type' => "courses",
+            'value' => $GLOBALS['user']->cfg->ADMIN_COURSES_VISIBILITY
+        );
+
 
         foreach (PluginManager::getInstance()->getPlugins("VeranstaltungsplanungFilter") as $plugin) {
             foreach ($plugin->getVeranstaltungsplanungFilter() as $name => $filter) {

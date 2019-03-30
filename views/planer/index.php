@@ -10,7 +10,10 @@
 
 <input type="hidden" class="date_fetch_params" id="object_type" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) ?>">
 <? foreach ($filters as $name => $filter) : ?>
-    <input type="hidden" class="date_fetch_params" id="<?= htmlReady($name) ?>" value="<?= htmlReady($filter['value']) ?>">
+    <input type="hidden"
+           data-object_type="<?= htmlReady($filter['object_type']) ?>"
+           class="date_fetch_params" id="<?= htmlReady($name) ?>"
+           value="<?= htmlReady($filter['value']) ?>">
 <? endforeach ?>
 
 <style>

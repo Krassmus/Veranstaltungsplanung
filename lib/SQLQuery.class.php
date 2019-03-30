@@ -26,6 +26,7 @@ class SQLQuery {
 
     public $settings = array();
     public $name = null;
+    public $combine_where_statements_with = "AND";
 
     static public function table($table, $query_name = null)
     {
@@ -188,7 +189,7 @@ class SQLQuery {
      * Shows the query that would be executed in the method fetchAll
      * @return string : sql query
      */
-    public function showQuery()
+    public function showQuery($with_parameters = false)
     {
         $sql = "SELECT `".$this->settings['table']."`.* ";
 
@@ -197,6 +198,16 @@ class SQLQuery {
         }
 
         $sql .= $this->getQuery();
+
+        if ($with_parameters) {
+            foreach ((array) $this->settings['parameter'] as $index => $value) {
+                if (is_numeric($index)) {
+                    $sql = str_replace("?", \DBManager::get()->quote($value), $sql, 1);
+                } else {
+                    $sql = str_replace(":".$index, \DBManager::get()->quote($value), $sql);
+                }
+            }
+        }
         return $sql;
     }
 
@@ -219,7 +230,7 @@ class SQLQuery {
             }
         }
         if ($this->settings['where']) {
-            $sql .= "WHERE ".implode(" AND ", $this->settings['where'])." ";
+            $sql .= "WHERE (".implode(") ".$this->combine_where_statements_with." (", $this->settings['where']).") ";
         }
         if ($this->settings['groupby']) {
             $sql .= "GROUP BY ".$this->settings['groupby']." ";

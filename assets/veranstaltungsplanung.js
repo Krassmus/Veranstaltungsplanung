@@ -49,10 +49,13 @@ STUDIP.Veranstaltungsplanung.changeEventEnd = function (info) {
 };
 
 STUDIP.Veranstaltungsplanung.appendFragment = function () {
-    var fragment = "object_type=" + encodeURIComponent(jQuery("#object_type").val());
+    var object_type = jQuery("#object_type").val();
+    var fragment = "object_type=" + encodeURIComponent(object_type);
 
     jQuery(".date_fetch_params").each(function () {
-        if (jQuery(this).val() && (jQuery(this).attr("id") !== "object_type")) {
+        if (jQuery(this).val()
+                && (jQuery(this).attr("id") !== "object_type")
+                && (jQuery(this).data("object_type") === object_type)) {
             fragment += "&" + jQuery(this).attr("id") + "=" + encodeURIComponent(jQuery(this).val());
         }
     });
@@ -94,6 +97,7 @@ jQuery(function () {
         STUDIP.Veranstaltungsplanung.appendFragment();
         STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
     });
+
 
 
 
@@ -159,5 +163,5 @@ jQuery(function () {
 
     STUDIP.Veranstaltungsplanung.calendar.render();
 
-    STUDIP.Veranstaltungsplanung.appendFragment();
+    jQuery("<.sidebar select[name=object_type]").trigger("change");
 });
