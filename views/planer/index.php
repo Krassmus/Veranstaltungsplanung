@@ -13,7 +13,7 @@
     <input type="hidden"
            data-object_type="<?= htmlReady($filter['object_type']) ?>"
            class="date_fetch_params" id="<?= htmlReady($name) ?>"
-           value="<?= htmlReady($filter['value']) ?>">
+           value="<?= $filter['value'] ? htmlReady($filter['value']) : "" ?>">
 <? endforeach ?>
 
 <style>

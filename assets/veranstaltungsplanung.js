@@ -163,5 +163,5 @@ jQuery(function () {
 
     STUDIP.Veranstaltungsplanung.calendar.render();
 
-    jQuery("<.sidebar select[name=object_type]").trigger("change");
+    jQuery(".sidebar select[name=object_type]").trigger("change");
 });

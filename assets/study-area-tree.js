@@ -1,5 +1,16 @@
 /*jslint browser: true */
 /*global jQuery, STUDIP */
+STUDIP.StudyareaTree = {
+    remove: function () {
+        var id = jQuery(this).closest("li").attr("class");
+        var ids = jQuery("#study_area_tree input[name=study_area_ids]").val().split(",");
+        ids = _.without(ids, id);
+        jQuery("#study_area_tree input[name=study_area_ids]").val(ids.join(","));
+        jQuery("#study_area_tree input[name=study_area_ids]").trigger("change");
+        jQuery(this).closest('li').remove();
+    }
+};
+
 (function ($, STUDIP) {
     'use strict';
 
@@ -34,6 +45,12 @@
             .text($('#study_area_tree .children li[data-id=' + id + "]").text());
         li.appendTo('#study_area_tree .selected');
         li.fadeIn(300);
+
+        var ids = jQuery("#study_area_tree input[name=study_area_ids]").val().split(",");
+        ids.push(id);
+        ids = _.without(_.uniq(ids), "");
+        jQuery("#study_area_tree input[name=study_area_ids]").val(ids.join(","));
+        jQuery("#study_area_tree input[name=study_area_ids]").trigger("change");
         return false;
     }
 

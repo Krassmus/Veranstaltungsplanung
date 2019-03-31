@@ -46,7 +46,7 @@
 <ul class="clean selected">
     <li style="display: none;" class="template">
         <div style="float: right; cursor: pointer;">
-            <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "jQuery(this).closest('li').remove();", 'title' => _("Studienbereich abwählen"))) ?>
+            <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen"))) ?>
         </div>
         <?= Icon::create("checkbox-checked", "info")->asImg(20, array('class' => "text-bottom")) ?>
         <input type="hidden" name="sem_tree_id[]" value="">
@@ -55,11 +55,12 @@
     <? foreach ($selected as $study_area) : ?>
         <li class="<?= $study_area->id ?>">
             <div style="float: right; cursor: pointer;">
-                <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "jQuery(this).closest('li').remove();", 'title' => _("Studienbereich abwählen"))) ?>
+                <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen"))) ?>
             </div>
             <?= Icon::create("checkbox-checked", "info")->asImg(20, array('class' => "text-bottom")) ?>
-            <input type="hidden" name="sem_tree_id[]" value="<?= $study_area->id ?>">
+            <input type="hidden" name="sem_tree_id[]" value="<?= htmlReady($study_area->id) ?>">
             <span class="name"><?= htmlReady($study_area->getName()) ?></span>
         </li>
     <? endforeach ?>
 </ul>
+<input type="hidden" name="study_area_ids" value="<?= implode(",", array_map(function ($studyarea) { return $studyarea->id; }, $selected)) ?>">
