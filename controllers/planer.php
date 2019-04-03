@@ -7,6 +7,14 @@ class PlanerController extends PluginController
 
     static protected $widgets = null;
 
+    public function before_filter(&$action, &$args)
+    {
+        parent::before_filter($action, $args);
+        if (!$GLOBALS['perm']->have_perm("admin")) {
+            throw new AccessDeniedException();
+        }
+    }
+
     public function index_action()
     {
         Navigation::activateItem("/browse/va_planer");
@@ -22,7 +30,6 @@ class PlanerController extends PluginController
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
 
         $this->filters = $this->getWidgets();
-
     }
 
     public function change_type_action()
@@ -100,7 +107,6 @@ class PlanerController extends PluginController
         foreach (PluginManager::getInstance()->getPlugins("VeranstaltungsplanungFilter") as $plugin) {
             foreach ($plugin->getVeranstaltungsplanungFilter() as $name => $filter) {
                 $this->filters[$name] = $filter;
-
             }
         }
         $termine = array();
@@ -333,6 +339,7 @@ class PlanerController extends PluginController
         }
 
         self::$widgets = $filters;
+
         return $filters;
     }
 

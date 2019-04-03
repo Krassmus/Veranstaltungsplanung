@@ -6,7 +6,7 @@
 </script>
 
 <div id="calendar"
-     data-default_date="<?= date("r", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTDATE) ?>"></div>
+     data-default_date="<?= date("r", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTDATE ?: time()) ?>"></div>
 
 <input type="hidden" class="date_fetch_params" id="object_type" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) ?>">
 <? foreach ($filters as $name => $filter) : ?>
@@ -50,7 +50,7 @@ $select->addElement(new SelectElement(
 );
 Sidebar::Get()->addWidget($select);
 
-$disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true);
+$disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) ?: array();
 foreach ($filters as $name => $filter) {
     if (!in_array($name, $disabled_filters)) {
         Sidebar::Get()->addWidget($filter['widget']);

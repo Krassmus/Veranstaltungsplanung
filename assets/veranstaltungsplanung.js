@@ -142,7 +142,7 @@ jQuery(function () {
             STUDIP.Veranstaltungsplanung.unselect();
         },
         editable: true,
-        defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : null,
+        defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : "now",
         locale: "de",
         events: {
             url: STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/fetch_dates'),
