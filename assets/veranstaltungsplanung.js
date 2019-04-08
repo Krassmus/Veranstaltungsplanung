@@ -54,6 +54,7 @@ STUDIP.Veranstaltungsplanung.appendFragment = function () {
 
     jQuery(".date_fetch_params").each(function () {
         if (jQuery(this).val()
+                && jQuery(this).val() !== "all"
                 && (jQuery(this).attr("id") !== "object_type")
                 && (jQuery(this).data("object_type") === object_type)) {
             fragment += "&" + jQuery(this).attr("id") + "=" + encodeURIComponent(jQuery(this).val());
@@ -82,8 +83,8 @@ jQuery(function () {
         if (object_type !== "courses") {
             jQuery("form .courses").closest(".sidebar-widget").hide();
         }
-        if (object_type !== "teachers") {
-            jQuery("form .teachers").closest(".sidebar-widget").hide();
+        if (object_type !== "persons") {
+            jQuery("form .persons").closest(".sidebar-widget").hide();
         }
         if (object_type !== "resources") {
             jQuery("form .resources").closest(".sidebar-widget").hide();
@@ -92,8 +93,12 @@ jQuery(function () {
 
     });
     jQuery(".sidebar select, .sidebar input").on("change", function () {
-        var name = jQuery(this).attr("name");
-        jQuery("#" + name).val(jQuery(this).val());
+        var name = jQuery(this).attr("name").replace(/\[\]/, "");
+        var val = jQuery(this).val();
+        if (typeof val === "object") {
+            val = JSON.stringify(val.filter(i => !!i));
+        }
+        jQuery("#" + name).val(val);
         STUDIP.Veranstaltungsplanung.appendFragment();
         STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
     });

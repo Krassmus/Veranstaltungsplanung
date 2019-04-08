@@ -37,9 +37,9 @@ $select->addElement(new SelectElement(
     'select-courses'
 );
 $select->addElement(new SelectElement(
-    "teachers",
-    _("Lehrende"),
-    $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE === "teachers"),
+    "persons",
+    _("Personen"),
+    $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE === "persons"),
     'select-teacher'
 );
 $select->addElement(new SelectElement(

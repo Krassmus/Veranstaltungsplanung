@@ -45,6 +45,7 @@ class PlanerController extends PluginController
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_DEFAULTDATE', $start + floor(($end - $start) / 2));
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_OBJECT_TYPE', Request::get("object_type"));
 
+        $termine = array();
         $query = new \Veranstaltungsplanung\SQLQuery(
             "termine",
             "veranstaltungsplanung_termine"
@@ -56,6 +57,7 @@ class PlanerController extends PluginController
         $query->where("end", "`termine`.`date` <= :end", array(
             'end' => $end
         ));
+        $query->groupBy("`termine`.`termin_id`");
 
         switch (Request::get("object_type")) {
             case "courses":
@@ -99,7 +101,27 @@ class PlanerController extends PluginController
                     ));
                 }
                 break;
-            case "teachers":
+            case "persons":
+                //$query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
+                $query->join("seminar_user", "`seminar_user`.`Seminar_id` = `termine`.`range_id`");
+                if (Request::get("person_status")) {
+                    $status = json_decode(Request::get("person_status"));
+                    $GLOBALS['user']->cfg->store('ADMIN_USER_STATUS', serialize($status));
+
+                    $person_status = array_intersect($status, compact("user autor tutor dozent admin root"));
+                    $person_roles = array_diff($status, compact("user autor tutor dozent admin root"));
+
+                    if (count($person_status) + count($person_roles) > 0) {
+                        $query->join("auth_user_md5", "`seminar_user`.`user_id` = `auth_user_md5`.`user_id`");
+                        $query->join("roles_user", "`seminar_user`.`user_id` = `roles_user`.`userid`");
+                        $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status) OR `roles_user`.`roleid` IN (:person_roles) ", array(
+                            'person_status' => array_intersect($status, compact("user autor tutor dozent admin root")),
+                            'person_roles' => array_diff($status, compact("user autor tutor dozent admin root"))
+                        ));
+                    }
+                }
+
+                //Zweiter Query für private Termine:
                 break;
             case "resources":
                 break;
@@ -109,10 +131,10 @@ class PlanerController extends PluginController
                 $this->filters[$name] = $filter;
             }
         }
-        $termine = array();
+
         foreach ($query->fetchAll("CourseDate") as $termin) {
             $termine[] = array(
-                'id' => $termin->getId(),
+                'id' => "termine_".$termin->getId(),
                 'title' => $termin->course['name'],
                 'start' => date("r", $termin['date']),
                 'end' => date("r", $termin['end_time']),
@@ -294,8 +316,10 @@ class PlanerController extends PluginController
 
 
 
+        $study_area = new StudyAreaSelector();
+        $study_area->class = "courses";
         $filters['study_area_ids'] = array(
-            'widget' => new StudyAreaSelector(),
+            'widget' => $study_area,
             'object_type' => "courses",
             'value' => $GLOBALS['user']->cfg->ADMIN_COURSES_STUDYAREAS
         );
@@ -329,6 +353,38 @@ class PlanerController extends PluginController
             'widget' => $visibility,
             'object_type' => "courses",
             'value' => $GLOBALS['user']->cfg->ADMIN_COURSES_VISIBILITY
+        );
+
+
+        $person_status = new SelectWidget(
+            _("Rollen-Filter"),
+            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
+            "person_status",
+            "get",
+            true
+        );
+        $person_status->class = "persons";
+        $status_config = $GLOBALS['user']->cfg->ADMIN_USER_STATUS ? unserialize($GLOBALS['user']->cfg->ADMIN_USER_STATUS) : array();
+        foreach (array("user", "autor", "tutor", "dozent", "admin", "root") as $status) {
+            $person_status->addElement(new SelectElement(
+                $status,
+                ucfirst($status),
+                in_array($status, $status_config)
+            ));
+        }
+        foreach (RolePersistence::getAllRoles() as $role) {
+            if (!$role->getSystemType()) {
+                $person_status->addElement(new SelectElement(
+                    $role->getRoleid(),
+                    $role->getRolename(),
+                    in_array($role->getRoleid(), $status_config)
+                ));
+            }
+        }
+        $filters['person_status'] = array(
+            'widget' => $person_status,
+            'object_type' => "persons",
+            'value' => $GLOBALS['user']->cfg->ADMIN_USER_STATUS
         );
 
 

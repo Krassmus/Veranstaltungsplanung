@@ -30,7 +30,7 @@
     </fieldset>
 
     <? $filter_names = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) : array() ?>
-    <? foreach (array('courses' => _("Veranstaltungen"), 'teachers' => _("Lehrende"), 'resources' => _("Ressourcen")) as $type => $title) : ?>
+    <? foreach (array('courses' => _("Veranstaltungen"), 'persons' => _("Personen"), 'resources' => _("Ressourcen")) as $type => $title) : ?>
         <fieldset>
             <legend>
                 <?= sprintf(_("Filter für %s"), $title) ?>
