@@ -146,7 +146,8 @@ class PlanerController extends PluginController
     }
 
     public function get_collisions_action() {
-        $termin = CourseDate::find(Request::option("termin_id"));
+        list($type, $termin_id) = explode("_", Request::option("termin_id"), 2);
+        $termin = CourseDate::find($termin_id);
         $start = strtotime(Request::get("start"));
         $end = strtotime(Request::get("end"));
 
@@ -168,7 +169,37 @@ class PlanerController extends PluginController
                 $statement->execute(array($termin['range_id']));
                 $teacher_ids = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
 
-                $statement = DBManager::get()->prepare("
+                $statusgruppen_ids = $termin->statusgruppen->pluck("statusgruppe_id");
+
+                if (count($statusgruppen_ids) > 0) {
+                    $statement = DBManager::get()->prepare("
+                        SELECT termine.*
+                        FROM termine
+                            LEFT JOIN termin_related_persons ON (termine.termin_id = termin_related_persons.range_id)
+                            LEFT JOIN seminar_user ON (seminar_user.Seminar_id = termine.range_id)
+                            LEFT JOIN termin_related_groups ON (termine.termin_id = termin_related_persons.termin_id)
+                        WHERE termine.termin_id != :termin_id
+                            AND termine.`date` <= :end
+                            AND termine.`end_time` >= :start
+                            AND (
+                                (termin_related_persons.user_id IN (:teacher_ids)) 
+                                OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
+                            )
+                            AND (
+                                (termin_related_groups.statusgruppe_id IN (:statusgruppen_ids))
+                                OR (termin_related_groups.statusgruppe_id IS NULL AND termine.range_id = :seminar_id)
+                            )
+                    ");
+                    $statement->execute(array(
+                        'termin_id' => $termin->getId(),
+                        'start' => $start,
+                        'end' => $end,
+                        'teacher_ids' => $teacher_ids,
+                        'statusgruppen_ids' => $statusgruppen_ids,
+                        'seminar_id' => $termin['range_id']
+                    ));
+                } else {
+                    $statement = DBManager::get()->prepare("
                     SELECT termine.*
                     FROM termine
                         LEFT JOIN termin_related_persons ON (termine.termin_id = termin_related_persons.range_id)
@@ -176,14 +207,20 @@ class PlanerController extends PluginController
                     WHERE termine.termin_id != :termin_id
                         AND termine.`date` <= :end
                         AND termine.`end_time` >= :start
-                        AND ((termin_related_persons.user_id IN (:teacher_ids)) OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids)))
+                        AND (
+                            (termin_related_persons.user_id IN (:teacher_ids)) 
+                            OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
+                        )
                  ");
-                $statement->execute(array(
-                    'termin_id' => $termin->getId(),
-                    'start' => $start,
-                    'end' => $end,
-                    'teacher_ids' => $teacher_ids
-                ));
+                    $statement->execute(array(
+                        'termin_id' => $termin->getId(),
+                        'start' => $start,
+                        'end' => $end,
+                        'teacher_ids' => $teacher_ids
+                    ));
+                }
+
+
                 $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($termine_data as $data) {
                     $termin_ids[] = $data['termin_id'];
@@ -226,6 +263,8 @@ class PlanerController extends PluginController
                     );
                 }
             }
+        } else {
+            //coursedate is repeating date and we need to check for all dates
         }
 
         $output['events'][] = array(
@@ -384,7 +423,7 @@ class PlanerController extends PluginController
         $filters['person_status'] = array(
             'widget' => $person_status,
             'object_type' => "persons",
-            'value' => $GLOBALS['user']->cfg->ADMIN_USER_STATUS
+            'value' => json_encode($status_config)
         );
 
 
