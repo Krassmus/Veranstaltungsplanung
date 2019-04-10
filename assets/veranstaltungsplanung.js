@@ -35,6 +35,7 @@ STUDIP.Veranstaltungsplanung.changeEventStart = function (info) {
     });
 };
 STUDIP.Veranstaltungsplanung.changeEventEnd = function (info) {
+    var termin_id = info.event.id;
     STUDIP.Veranstaltungsplanung.dragging = false;
     var events = STUDIP.Veranstaltungsplanung.calendar.getEvents();
     for (var i in events) {
@@ -44,8 +45,29 @@ STUDIP.Veranstaltungsplanung.changeEventEnd = function (info) {
             }
         }
     }
+};
+STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
+    var termin_id = info.event.id;
+    var revert = info.revert;
+    var start = parseInt(info.event.start.getTime() / 1000, 10).toFixed(0);
+    var end = parseInt(info.event.end.getTime() / 1000, 10).toFixed(0);
+    console.log(start);
+    console.log(end);
+    //console.log(info.event.end);
 
     //AJAX to change; if there is a collision open a dialog and ask what to do
+    jQuery.ajax({
+        "url": STUDIP.URLHelper.getURL("plugins.php/veranstaltungsplanung/planer/change_event"),
+        "data": {
+            "termin_id": info.event.id,
+            "start": start,
+            "end": end
+        },
+        "dataType": "json",
+        "success": function (output) {
+
+        }
+    });
 };
 
 STUDIP.Veranstaltungsplanung.appendFragment = function () {
@@ -129,10 +151,13 @@ jQuery(function () {
         scrollTime: '07:30:00',
         selectable: true,
         selectMirror: true,
+        timezone: 'local',
         eventResizeStart: STUDIP.Veranstaltungsplanung.changeEventStart,
         eventResizeStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
         eventDragStart: STUDIP.Veranstaltungsplanung.changeEventStart,
         eventDragStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
+        eventDrop: STUDIP.Veranstaltungsplanung.dropEvent,
+        eventResize: STUDIP.Veranstaltungsplanung.dropEvent,
         select: function (arg) {
             var title = prompt('Event Title:');
             if (title) {
