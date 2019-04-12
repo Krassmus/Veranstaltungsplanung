@@ -152,6 +152,10 @@ jQuery(function () {
         selectable: true,
         selectMirror: true,
         timezone: 'local',
+        eventClick: function (info) {
+            var termin_id = info.event.id;
+            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/info/date/' + termin_id));
+        },
         eventResizeStart: STUDIP.Veranstaltungsplanung.changeEventStart,
         eventResizeStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
         eventDragStart: STUDIP.Veranstaltungsplanung.changeEventStart,
