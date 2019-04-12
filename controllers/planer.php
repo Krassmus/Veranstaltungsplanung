@@ -155,8 +155,8 @@ class PlanerController extends PluginController
             $termine[] = array(
                 'id' => "termine_".$termin->getId(),
                 'title' => $termin->course['name'],
-                'start' => date("r", $termin['date']),
-                'end' => date("r", $termin['end_time']),
+                'start' => date("c", $termin['date']),
+                'end' => date("c", $termin['end_time']),
                 'classes' => array("course_".$termin['range_id'])
             );
         }
@@ -170,9 +170,21 @@ class PlanerController extends PluginController
         $start = strtotime(Request::get("start"));
         $end = strtotime(Request::get("end"));
 
+        $output = array();
+        $output['events'] = $this->getCollisions($termin, $start, $end);
 
-        $output = array('events' => array());
+        //original event, which gets displayed in yellow:
+        $output['events'][] = array(
+            'id' => $termin['termin_id'],
+            'start' => date("c", $termin['date']),
+            'end' => date("c", $termin['end_time']),
+            'conflict' => "original"
+        );
+        $this->render_json($output);
+    }
 
+    public function getCollisions($termin, $start, $end) {
+        $events = array();
         $teacher_ids = array();
         $termin_ids = array($termin->getId());
         foreach ($termin->dozenten as $dozent) {
@@ -239,24 +251,22 @@ class PlanerController extends PluginController
                 ));
             }
 
-
             $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
             foreach ($termine_data as $data) {
                 $termin_ids[] = $data['termin_id'];
-                $output['events'][] = array(
+                $events[] = array(
                     'id' => $data['termin_id'],
-                    'start' => date("r", $data['date']),
-                    'end' => date("r", $data['end_time']),
+                    'start' => date("c", $data['date']),
+                    'end' => date("c", $data['end_time']),
                     'conflict' => "teacher_room",
                     'reason' => _("Lehrender hat dort keine Zeit")
                 );
             }
-
-
         }
+
         //check for blocked resource:
         if ($termin->room_assignment) {
-            DBManager::get()->prepare("
+            $statement = DBManager::get()->prepare("
                 SELECT termine.*
                 FROM termine
                     INNER JOIN resources_assign ON (resources_assign.assign_user_id = termine.termin_id)
@@ -274,10 +284,10 @@ class PlanerController extends PluginController
             $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
             foreach ($termine_data as $data) {
                 $termin_ids[] = $data['termin_id'];
-                $output['events'][] = array(
+                $events[] = array(
                     'id' => $data['termin_id'],
-                    'start' => date("r", $data['date']),
-                    'end' => date("r", $data['end_time']),
+                    'start' => date("c", $data['date']),
+                    'end' => date("c", $data['end_time']),
                     'reason' => _("Raum ist dort schon belegt.")
                 );
             }
@@ -300,13 +310,7 @@ class PlanerController extends PluginController
             ));
         }
 
-        $output['events'][] = array(
-            'id' => $termin['termin_id'],
-            'start' => date("r", $termin['date']),
-            'end' => date("r", $termin['end_time']),
-            'conflict' => "original"
-        );
-        $this->render_json($output);
+        return $events;
     }
 
     public function getWidgets() {
