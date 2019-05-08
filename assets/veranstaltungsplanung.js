@@ -71,18 +71,30 @@ STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
 };
 
 STUDIP.Veranstaltungsplanung.appendFragment = function () {
-    var object_type = jQuery("#object_type").val();
-    var fragment = "object_type=" + encodeURIComponent(object_type);
+    var fragment = [];
+    var params = STUDIP.Veranstaltungsplanung.getCurrentParameters();
+    for (var i in params) {
+        fragment.push(encodeURIComponent(i) + "=" + encodeURIComponent(params[i]));
+    }
+    fragment = fragment.join("&");
+    window.location.hash = fragment;
+    return fragment;
+};
 
+STUDIP.Veranstaltungsplanung.getCurrentParameters = function () {
+    var object_type = jQuery("#object_type").val();
+    var params = {
+        "object_type": object_type
+    };
     jQuery(".date_fetch_params").each(function () {
         if (jQuery(this).val()
                 && jQuery(this).val() !== "all"
                 && (jQuery(this).attr("id") !== "object_type")
                 && (jQuery(this).data("object_type") === object_type)) {
-            fragment += "&" + jQuery(this).attr("id") + "=" + encodeURIComponent(jQuery(this).val());
+            params[jQuery(this).attr("id")] = jQuery(this).val();
         }
     });
-    window.location.hash = fragment;
+    return params;
 };
 
 jQuery(function () {
@@ -163,7 +175,13 @@ jQuery(function () {
         eventDrop: STUDIP.Veranstaltungsplanung.dropEvent,
         eventResize: STUDIP.Veranstaltungsplanung.dropEvent,
         select: function (arg) {
-            var title = prompt('Event Title:');
+            //neuer Termin:
+            var data = STUDIP.Veranstaltungsplanung.getCurrentParameters();
+            data["start"] = arg.start.getTime() / 1000;
+            data["end"] = arg.end.getTime() / 1000;
+            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/create_date', data));
+
+            /*var title = prompt('Event Title:');
             if (title) {
                 STUDIP.Veranstaltungsplanung.addEvent({
                     title: title,
@@ -172,8 +190,8 @@ jQuery(function () {
                     allDay: arg.allDay,
                     textColor: 'black'
                 });
-            }
-            STUDIP.Veranstaltungsplanung.unselect();
+            }*/
+            //STUDIP.Veranstaltungsplanung.unselect();
         },
         editable: true,
         defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : "now",

@@ -496,4 +496,58 @@ class PlanerController extends PluginController
             $this->redirect("planer/index");
         }
     }
+
+    public function create_date_action() {
+        $this->start = Request::int("start");
+        $this->end = Request::int("end");
+        PageLayout::setTitle(sprintf(_("Termin erstellen %s - %s"), date("d.m.Y H:i", $this->start), date((floor($this->start / 86400) == floor($this->end / 86400) ? "H:i" : "d.m.Y H:i "), $this->end)));
+        $query = new \Veranstaltungsplanung\SQLQuery(
+            "seminare",
+            "veranstaltungsplanung_seminare"
+        );
+
+        $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id"));
+        if (Request::get("institut_id") && Request::get("institut_id") !== "all") {
+            $query->join("Institute", "`Institute`.`Institut_id` = `seminare`.`Institut_id`");
+            $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", array(
+                'institut_id' => Request::get("institut_id")
+            ));
+        }
+        $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', Request::get("semester_id"));
+        if (Request::get("semester_id") && Request::get("semester_id") !== "all") {
+            $semester = Semester::find(Request::get("semester_id"));
+            $query->where("semester_select", "`seminare`.`start_time` <= :semester_start AND (`seminare`.`duration_time` = -1 OR `seminare`.`duration_time` + `seminare`.`start_time` >= :semester_start OR (`seminare`.`duration_time` = '0' AND `seminare`.`start_time` = :semester_start))", array(
+                'semester_start' => $semester['beginn']
+            ));
+        }
+        $GLOBALS['user']->cfg->store('ADMIN_COURSES_SEARCHTEXT', Request::get("course_search"));
+        if (Request::get("course_search")) {
+            $query->join("dozenten_su", "seminar_user", "`seminare`.`Seminar_id` = dozenten_su.Seminar_id AND dozenten_su.status = 'dozent'");
+            $query->join("dozent", "auth_user_md5", "dozent.user_id = dozenten_su.user_id");
+            $query->where("search", "`seminare`.name LIKE :search OR `seminare`.`VeranstaltungsNummer` LIKE :search OR CONCAT(dozent.Vorname, ' ', dozent.Nachname, ' ', dozent.username, ' ', dozent.Email) LIKE :search", array(
+                'search' => "%".Request::get("course_search")."%"
+            ));
+        }
+        $GLOBALS['user']->cfg->store('ADMIN_COURSES_STUDYAREAS', Request::get("study_area_ids"));
+        if (Request::get("study_area_ids")) {
+            $sem_tree_ids = explode(",", Request::get("study_area_ids"));
+            //possibly add all sub-items
+            $query->join("seminar_sem_tree", "`seminar_sem_tree`.`seminar_id` = `seminare`.`Seminar_id`");
+            $query->join("sem_tree", "`sem_tree`.`sem_tree_id` = `seminar_sem_tree`.`sem_tree_id`");
+            $query->where("sem_tree_ids", "`seminar_sem_tree`.`sem_tree_id` IN (:sem_tree_ids) OR `sem_tree`.`parent_id` IN (:sem_tree_ids)", array(
+                'sem_tree_ids' => $sem_tree_ids
+            ));
+        }
+        $GLOBALS['user']->cfg->store('ADMIN_COURSES_VISIBILITY', Request::get("visibility"));
+        if (Request::get("visibility")) {
+            $query->where("visibility", "`seminare`.`visible` = :visible", array(
+                'visible' => Request::get("visibility") === "visible" ? 1 : 0
+            ));
+        }
+
+        $query->groupBy("`seminare`.`Seminar_id`");
+        $query->orderBy("`seminare`.name ASC");
+
+        $this->courses = $query->fetchAll("Course");
+    }
 }
