@@ -103,15 +103,15 @@ jQuery(function () {
     jQuery(".change_type").on("change", function () {
         var object_type = jQuery(".change_type").val();
         if (object_type !== "courses") {
-            jQuery("form .courses").closest(".sidebar-widget").hide();
+            jQuery(".sidebar-widget.courses").hide();
         }
         if (object_type !== "persons") {
-            jQuery("form .persons").closest(".sidebar-widget").hide();
+            jQuery(".sidebar-widget.persons").hide();
         }
         if (object_type !== "resources") {
-            jQuery("form .resources").closest(".sidebar-widget").hide();
+            jQuery(".sidebar-widget.resources").hide();
         }
-        jQuery(".sidebar-widget ." + object_type).closest(".sidebar-widget").show();
+        jQuery(".sidebar-widget." + object_type).show();
 
     });
     jQuery(".sidebar select, .sidebar input").on("change", function () {

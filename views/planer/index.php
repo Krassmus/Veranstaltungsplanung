@@ -53,7 +53,7 @@ Sidebar::Get()->addWidget($select);
 $disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) ?: array();
 foreach ($filters as $name => $filter) {
     if (!in_array($name, $disabled_filters)) {
-        Sidebar::Get()->addWidget($filter['widget']);
+        Sidebar::Get()->addWidget($filter['widget'], $name);
     }
 }
 

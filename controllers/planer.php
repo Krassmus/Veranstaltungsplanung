@@ -330,6 +330,7 @@ class PlanerController extends PluginController
             $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT
         );
         $textsearch->class = "courses";
+        $textsearch->addLayoutCSSClass("courses");
         $filters['course_search'] = array(
             'widget' => $textsearch,
             'object_type' => "courses",
@@ -342,7 +343,7 @@ class PlanerController extends PluginController
             PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
             "semester_id"
         );
-        $semester_select->class = "courses";
+        $semester_select->addLayoutCSSClass("courses");
         $semester_select->addElement(new SelectElement(
             "",
             "",
@@ -369,7 +370,7 @@ class PlanerController extends PluginController
             PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
             "institut_id"
         );
-        $institutes->class = "courses";
+        $institutes->addLayoutCSSClass("courses");
         $institutes->addElement(new SelectElement(
             "",
             "",
@@ -393,7 +394,7 @@ class PlanerController extends PluginController
 
 
         $study_area = new StudyAreaSelector();
-        $study_area->class = "courses";
+        $study_area->addLayoutCSSClass("courses");
         $filters['study_area_ids'] = array(
             'widget' => $study_area,
             'object_type' => "courses",
@@ -406,7 +407,7 @@ class PlanerController extends PluginController
             PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
             "visibility"
         );
-        $visibility->class = "courses";
+        $visibility->addLayoutCSSClass("courses");
         $visibility->addElement(new SelectElement(
             "",
             "",
@@ -439,7 +440,7 @@ class PlanerController extends PluginController
             "get",
             true
         );
-        $person_status->class = "persons";
+        $person_status->addLayoutCSSClass("persons");
         $status_config = $GLOBALS['user']->cfg->ADMIN_USER_STATUS ? unserialize($GLOBALS['user']->cfg->ADMIN_USER_STATUS) : array();
         foreach (array("user", "autor", "tutor", "dozent", "admin", "root") as $status) {
             $person_status->addElement(new SelectElement(
