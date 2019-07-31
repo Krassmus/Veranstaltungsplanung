@@ -81,6 +81,10 @@ STUDIP.Veranstaltungsplanung.appendFragment = function () {
     return fragment;
 };
 
+STUDIP.Veranstaltungsplanung.reloadCalendar = function () {
+    STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
+};
+
 STUDIP.Veranstaltungsplanung.getCurrentParameters = function () {
     var object_type = jQuery("#object_type").val();
     var params = {
@@ -95,6 +99,20 @@ STUDIP.Veranstaltungsplanung.getCurrentParameters = function () {
         }
     });
     return params;
+};
+
+STUDIP.Veranstaltungsplanung.getDozenten = function () {
+    if (this.value) {
+        jQuery('.durchfuehrende_dozenten')
+            .load(
+                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/get_dozenten/' + this.value),
+                function () {
+                    jQuery('select[name=durchfuehrende_dozenten]').select2();
+                }
+            );
+    } else {
+        jQuery('.durchfuehrende_dozenten').html('');
+    }
 };
 
 jQuery(function () {
@@ -136,6 +154,8 @@ jQuery(function () {
         STUDIP.Veranstaltungsplanung.appendFragment();
         STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
     });
+
+
 
 
 

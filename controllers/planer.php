@@ -140,7 +140,7 @@ class PlanerController extends PluginController
                     }
                 }
 
-                //Zweiter Query f�r private Termine:
+                //Zweiter Query für private Termine:
                 break;
             case "resources":
                 break;
@@ -500,6 +500,42 @@ class PlanerController extends PluginController
     public function create_date_action() {
         $this->start = Request::int("start");
         $this->end = Request::int("end");
+
+        if (Request::isPost()) {
+            if (Request::option("metadate")) {
+
+            } else {
+                $date = new CourseDate();
+                $date['range_id'] = Request::option("course_id");
+                $date['autor_id'] = $GLOBALS['user']->id;
+                $date['date'] = $this->start;
+                $date['end_time'] = $this->end;
+                $date['date_typ'] = Request::option("dateType");
+                if (!Request::option("resource_id")) {
+                    $date['raum'] = Request::get("freeRoomText");
+                }
+                $date->store();
+                $dozenten = Course::find(Request::option("course_id"))->members->filter(function ($m) { return $m['status'] === "dozent"; });
+                if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
+                    $statement = DBManager::get()->prepare("
+                        INSERT IGNORE INTO termin_related_persons
+                        SET user_id = :user_id,
+                            range_id = :termin_id
+                    ");
+                    foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
+                        $statement->execute(array(
+                            'user_id' => $user_id,
+                            'termin_id' => $date->getId()
+                        ));
+                    }
+                }
+            }
+            //Dialog schließen und Fullcalendar neu laden:
+            $this->response->add_header("X-Dialog-Execute", "STUDIP.Veranstaltungsplanung.reloadCalendar");
+            $this->response->add_header("X-Dialog-Close", 1);
+            $this->render_nothing();
+        }
+
         PageLayout::setTitle(sprintf(_("Termin erstellen %s - %s"), date("d.m.Y H:i", $this->start), date((floor($this->start / 86400) == floor($this->end / 86400) ? "H:i" : "d.m.Y H:i "), $this->end)));
         $query = new \Veranstaltungsplanung\SQLQuery(
             "seminare",
@@ -549,5 +585,14 @@ class PlanerController extends PluginController
         $query->orderBy("`seminare`.name ASC");
 
         $this->courses = $query->fetchAll("Course");
+
+        if (Config::get()->RESOURCES_ENABLE) {
+            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
+        }
+    }
+
+    public function get_dozenten_action($seminar_id)
+    {
+        $this->dozenten = Course::find($seminar_id)->members->filter(function ($m) { return $m['status'] === "dozent"; });
     }
 }
