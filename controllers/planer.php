@@ -503,7 +503,46 @@ class PlanerController extends PluginController
 
         if (Request::isPost()) {
             if (Request::option("metadate")) {
-
+                $cycledate = new SeminarCycleDate();
+                $cycledate['seminar_id'] = Request::option("course_id");
+                $cycledate['start_time'] = date("H:i:s", $this->start);
+                $cycledate['end_time'] = date("H:i:s", $this->end);
+                $cycledate['weekday'] = date("w", $this->start) > 0 ? date("w", $this->start) : 7;
+                $cycledate['cycle'] = 0;
+                $cycledate->store();
+                $cycledate->generateNewDates();
+                $dozenten = Course::find(Request::option("course_id"))->members->filter(function ($m) { return $m['status'] === "dozent"; });
+                foreach ($cycledate->getAllDates() as $date) {
+                    if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
+                        $statement = DBManager::get()->prepare("
+                            INSERT IGNORE INTO termin_related_persons
+                            SET user_id = :user_id,
+                                range_id = :termin_id
+                        ");
+                        foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
+                            $statement->execute(array(
+                                'user_id' => $user_id,
+                                'termin_id' => $date->getId()
+                            ));
+                        }
+                    }
+                    if (Request::option("resource_id")) {
+                        //Raumbuchung
+                        $assignment = new ResourceAssignment();
+                        $assignment['resource_id'] = Request::option("resource_id");
+                        $assignment['assign_user_id'] = $date->getId();
+                        $assignment['begin'] = $this->start;
+                        $assignment['end'] = $this->end;
+                        $assignment['repeat_end'] = $this->end;
+                        $assignment['repeat_quantity'] = 0;
+                        $assignment['repeat_interval'] = 0;
+                        $assignment['repeat_month_of_year'] = 0;
+                        $assignment['repeat_day_of_month'] = 0;
+                        $assignment['repeat_week_of_month'] = 0;
+                        $assignment['repeat_day_of_week'] = 0;
+                        $assignment->store();
+                    }
+                }
             } else {
                 $date = new CourseDate();
                 $date['range_id'] = Request::option("course_id");
@@ -529,6 +568,23 @@ class PlanerController extends PluginController
                         ));
                     }
                 }
+                if (Request::option("resource_id")) {
+                    //Raumbuchung
+                    $assignment = new ResourceAssignment();
+                    $assignment['resource_id'] = Request::option("resource_id");
+                    $assignment['assign_user_id'] = $date->getId();
+                    $assignment['begin'] = $this->start;
+                    $assignment['end'] = $this->end;
+                    $assignment['repeat_end'] = $this->end;
+                    $assignment['repeat_quantity'] = 0;
+                    $assignment['repeat_interval'] = 0;
+                    $assignment['repeat_month_of_year'] = 0;
+                    $assignment['repeat_day_of_month'] = 0;
+                    $assignment['repeat_week_of_month'] = 0;
+                    $assignment['repeat_day_of_week'] = 0;
+                    $assignment->store();
+                }
+
             }
             //Dialog schließen und Fullcalendar neu laden:
             $this->response->add_header("X-Dialog-Execute", "STUDIP.Veranstaltungsplanung.reloadCalendar");
