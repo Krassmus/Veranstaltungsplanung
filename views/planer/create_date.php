@@ -28,10 +28,12 @@
         </select>
     </label>
 
-    <label>
-        <input type="checkbox" name="metadate" value="1">
-        <?= _("Regelmäßiger Termin") ?>
-    </label>
+    <? if ($in_semester) : ?>
+        <label>
+            <input type="checkbox" name="metadate" value="1">
+            <?= _("Regelmäßiger Termin") ?>
+        </label>
+    <? endif ?>
 
     <? if (Config::get()->RESOURCES_ENABLE) : ?>
         <label>

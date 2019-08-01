@@ -513,6 +513,11 @@ class PlanerController extends PluginController
                 $cycledate->generateNewDates();
                 $dozenten = Course::find(Request::option("course_id"))->members->filter(function ($m) { return $m['status'] === "dozent"; });
                 foreach ($cycledate->getAllDates() as $date) {
+                    $date['date_typ'] = Request::option("dateType");
+                    if (!Request::option("resource_id")) {
+                        $date['raum'] = Request::get("freeRoomText");
+                    }
+                    $date->store();
                     if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
                         $statement = DBManager::get()->prepare("
                             INSERT IGNORE INTO termin_related_persons
@@ -645,6 +650,8 @@ class PlanerController extends PluginController
         if (Config::get()->RESOURCES_ENABLE) {
             $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
         }
+        $this->semester = Semester::findByTimestamp($this->start);
+        $this->in_semester = $this->semester && ($this->semester['vorles_beginn'] <= $this->start && $this->semester['vorles_ende'] >= $this->end);
     }
 
     public function get_dozenten_action($seminar_id)
