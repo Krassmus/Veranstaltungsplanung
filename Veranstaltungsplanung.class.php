@@ -1,7 +1,8 @@
 <?php
 
 require_once __DIR__."/lib/SQLQuery.class.php";
-require_once __DIR__."/lib/VeranstaltungsplanungFilter.interface.php";
+require_once __DIR__."/lib/filters/VPFilter.interface.php";
+require_once __DIR__."/lib/filters/VPSemesterFilter.php";
 
 class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
 {

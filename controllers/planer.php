@@ -30,6 +30,13 @@ class PlanerController extends PluginController
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
 
         $this->filters = $this->getWidgets();
+
+        $this->vpfilters = array();
+        foreach (get_declared_classes() as $class) {
+            if (in_array('VPFilter', class_implements($class))) {
+                $this->vpfilters[$class::context()][] = new $class();
+            }
+        }
     }
 
     public function change_event_action()
@@ -338,7 +345,7 @@ class PlanerController extends PluginController
         );
 
 
-        $semester_select = new SelectWidget(
+        /*$semester_select = new SelectWidget(
             _("Semester"),
             PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
             "semester_id"
@@ -362,7 +369,7 @@ class PlanerController extends PluginController
             'widget' => $semester_select,
             'object_type' => "courses",
             'value' => $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE
-        );
+        );*/
 
 
         $institutes = new SelectWidget(
@@ -479,6 +486,12 @@ class PlanerController extends PluginController
 
     public function settings_action()
     {
+        $this->filters = array();
+        foreach (get_declared_classes() as $class) {
+            if (in_array('VPFilter', class_implements($class))) {
+                $this->filters[$class::context()][] = new $class();
+            }
+        }
         if (Request::isPost()) {
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_LINE', Request::get("line"));
 
@@ -486,7 +499,12 @@ class PlanerController extends PluginController
                 'VERANSTALTUNGSPLANUNG_HIDDENDAYS',
                 json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("hidden_days")))
             );
-            $all_filters = array_keys($this->getWidgets());
+            $all_filters = array_merge(
+                array_keys($this->getWidgets()),
+                array_map(function ($f) { return get_class($f); }, (array) $this->filters['courses']),
+                array_map(function ($f) { return get_class($f); }, (array) $this->filters['persons']),
+                array_map(function ($f) { return get_class($f); }, (array) $this->filters['resources'])
+            );
             $filters = array_values(array_diff($all_filters, Request::getArray("filter")));
             $GLOBALS['user']->cfg->store(
                 'VERANSTALTUNGSPLANUNG_DISABLED_FILTER',

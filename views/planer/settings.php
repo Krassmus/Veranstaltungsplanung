@@ -43,6 +43,13 @@
                     </label>
                 <? endif;
             } ?>
+
+            <? foreach ((array) $filters[$type] as $filter) : ?>
+                <label>
+                    <input type="checkbox" name="filter[]" value="<?= htmlReady(get_class($filter)) ?>"<?= !in_array(get_class($filter), $filter_names) ? "checked" : "" ?>>
+                    <?= htmlReady($filter->getName()) ?>
+                </label>
+            <? endforeach ?>
         </fieldset>
     <? endforeach ?>
 

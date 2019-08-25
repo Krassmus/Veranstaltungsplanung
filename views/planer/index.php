@@ -57,6 +57,14 @@ foreach ($filters as $name => $filter) {
     }
 }
 
+foreach ($vpfilters as $object_type => $filterset) {
+    foreach ($filterset as $filter) {
+        if (!in_array(get_class($filter), $disabled_filters)) {
+            Sidebar::Get()->addWidget($filter->getSidebarWidget(), get_class($filter));
+        }
+    }
+}
+
 $actions = new ActionsWidget();
 $actions->addLink(
     _("Planer konfigurieren"),
