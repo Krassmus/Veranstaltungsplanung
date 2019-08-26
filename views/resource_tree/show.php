@@ -1,8 +1,8 @@
 <div class="up">
-    <? if ($parent && $parent->sem_tree_id && ($parent->sem_tree_id !== 'root')): ?>
+    <? if ($parent && $parent->id && ($parent->id != '0')): ?>
         <a href="#" data-id="<?= htmlReady($parent->parent_id) ?>">
             <?= Icon::create('arr_1left')->asImg(['class' => 'text-bottom']) ?>
-            <?= htmlReady($parent->getName()) ?>
+            <?= htmlReady($parent['name']) ?>
         </a>
     <? else: ?>
         <span>
@@ -11,7 +11,7 @@
         </span>
     <? endif; ?>
     <label class="unsetter" title="<?= _('Keinen Studienbereich auswählen') ?>">
-        <input type="radio" name="sem_tree_id" value=""
+        <input type="radio" name="resource_id" value=""
             <? if (!$selected) echo 'checked'; ?>>
 
         <!--
@@ -22,17 +22,17 @@
 </div>
 
 <ol class="children">
-    <? foreach ($study_areas as $study_area): ?>
-        <li data-id="<?= $study_area->id ?>">
-            <? if (count($study_area->_children) > 0): ?>
+    <? foreach ($resources as $resource): ?>
+        <li data-id="<?= $resource->id ?>">
+            <? if (count($resource->children) > 0): ?>
                 <a href="#" class="navigator">
                     <?= Icon::create('arr_1right')->asImg(['class' => 'text-bottom']) ?>
-                    <?= htmlReady($study_area->getName()) ?>
+                    <?= htmlReady($resource['name']) ?>
                 </a>
             <? else: ?>
                 <span>
                     <?= Icon::create('arr_1right', 'info')->asImg(['class' => 'text-bottom']) ?>
-                    <?= htmlReady($study_area->getName()) ?>
+                    <?= htmlReady($resource['name']) ?>
                 </span>
             <? endif; ?>
             <a href="#"
@@ -49,21 +49,21 @@
             <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen"))) ?>
         </div>
         <?= Icon::create("checkbox-checked", "info")->asImg(20, array('class' => "text-bottom")) ?>
-        <input type="hidden" name="sem_tree_id[]" value="">
+        <input type="hidden" name="resource_id[]" value="">
         <span class="name"></span>
     </li>
-    <? foreach ($selected as $study_area) : ?>
-        <li class="<?= $study_area->id ?>">
+    <? foreach ($selected as $resource) : ?>
+        <li class="<?= $resource->id ?>">
             <div style="float: right; cursor: pointer;">
                 <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen"))) ?>
             </div>
             <?= Icon::create("checkbox-checked", "info")->asImg(20, array('class' => "text-bottom")) ?>
-            <input type="hidden" name="sem_tree_id[]" value="<?= htmlReady($study_area->id) ?>">
-            <span class="name"><?= htmlReady($study_area->getName()) ?></span>
+            <input type="hidden" name="sem_tree_id[]" value="<?= htmlReady($resource->id) ?>">
+            <span class="name"><?= htmlReady($resource['name']) ?></span>
         </li>
     <? endforeach ?>
 </ul>
 <input type="hidden"
        class="ids"
-       name="study_area_ids"
-       value="<?= implode(",", array_map(function ($studyarea) { return $studyarea->id; }, $selected)) ?>">
+       name="resource_ids"
+       value="<?= implode(",", array_map(function ($r) { return $r->id; }, $selected)) ?>">

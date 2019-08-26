@@ -1,13 +1,18 @@
 <?php
 
 require_once __DIR__."/lib/SQLQuery.class.php";
+require_once __DIR__."/lib/VPResource.php";
 require_once __DIR__."/lib/filters/VPFilter.interface.php";
+
 require_once __DIR__."/lib/filters/VPCourseSearchFilter.php";
 require_once __DIR__."/lib/filters/VPSemesterFilter.php";
 require_once __DIR__."/lib/filters/VPCourseInstituteFilter.php";
 require_once __DIR__."/lib/filters/VPCourseStudyareaFilter.php";
 require_once __DIR__."/lib/filters/VPCourseVisibilityFilter.php";
+
 require_once __DIR__."/lib/filters/VPUserRoleFilter.php";
+
+require_once __DIR__."/lib/filters/VPResourceTreeFilter.php";
 
 class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
 {
