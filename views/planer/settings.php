@@ -11,16 +11,18 @@
 
         <label>
             <?= _("Tage verstecken") ?>
-            <? $days = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS, true) : array() ?>
-            <select class="multiselect" multiple name="hidden_days[]" data-multiple>
-                <option value="1"<?= in_array(1, $days) ? " selected" : "" ?>><?= _("Montag") ?></option>
-                <option value="2"<?= in_array(2, $days) ? " selected" : "" ?>><?= _("Dienstag") ?></option>
-                <option value="3"<?= in_array(3, $days) ? " selected" : "" ?>><?= _("Mittwoch") ?></option>
-                <option value="4"<?= in_array(4, $days) ? " selected" : "" ?>><?= _("Donnerstag") ?></option>
-                <option value="5"<?= in_array(5, $days) ? " selected" : "" ?>><?= _("Freitag") ?></option>
-                <option value="6"<?= in_array(6, $days) ? " selected" : "" ?>><?= _("Samstag") ?></option>
-                <option value="0"<?= in_array(0, $days) ? " selected" : "" ?>><?= _("Sonntag") ?></option>
-            </select>
+            <div>
+                <? $days = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS, true) : array() ?>
+                <select class="multiselect" multiple name="hidden_days[]" data-multiple>
+                    <option value="1"<?= in_array(1, $days) ? " selected" : "" ?>><?= _("Montag") ?></option>
+                    <option value="2"<?= in_array(2, $days) ? " selected" : "" ?>><?= _("Dienstag") ?></option>
+                    <option value="3"<?= in_array(3, $days) ? " selected" : "" ?>><?= _("Mittwoch") ?></option>
+                    <option value="4"<?= in_array(4, $days) ? " selected" : "" ?>><?= _("Donnerstag") ?></option>
+                    <option value="5"<?= in_array(5, $days) ? " selected" : "" ?>><?= _("Freitag") ?></option>
+                    <option value="6"<?= in_array(6, $days) ? " selected" : "" ?>><?= _("Samstag") ?></option>
+                    <option value="0"<?= in_array(0, $days) ? " selected" : "" ?>><?= _("Sonntag") ?></option>
+                </select>
+            </div>
         </label>
         <script>
             jQuery(function () {
@@ -35,14 +37,6 @@
             <legend>
                 <?= sprintf(_("Filter für %s"), $title) ?>
             </legend>
-            <? foreach ($controller->getWidgets() as $name => $widget_data) {
-                if ($widget_data['object_type'] === $type) : ?>
-                    <label>
-                        <input type="checkbox" name="filter[]" value="<?= htmlReady($name) ?>"<?= !in_array($name, $filter_names) ? "checked" : "" ?>>
-                        <?= htmlReady($widget_data['widget']->title) ?>
-                    </label>
-                <? endif;
-            } ?>
 
             <? foreach ((array) $filters[$type] as $filter) : ?>
                 <label>

@@ -29,14 +29,7 @@ class PlanerController extends PluginController
 
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
 
-        $this->filters = $this->getWidgets();
-
-        $this->vpfilters = array();
-        foreach (get_declared_classes() as $class) {
-            if (in_array('VPFilter', class_implements($class))) {
-                $this->vpfilters[$class::context()][] = new $class();
-            }
-        }
+        $this->vpfilters = Veranstaltungsplanung::getFilters();
     }
 
     public function change_event_action()
@@ -88,74 +81,19 @@ class PlanerController extends PluginController
         switch (Request::get("object_type")) {
             case "courses":
                 $query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
-                $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id"));
-                if (Request::get("institut_id") && Request::get("institut_id") !== "all") {
-                    $query->join("Institute", "`Institute`.`Institut_id` = `seminare`.`Institut_id`");
-                    $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", array(
-                        'institut_id' => Request::get("institut_id")
-                    ));
-                }
-                $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', Request::get("semester_id"));
-                if (Request::get("semester_id") && Request::get("semester_id") !== "all") {
-                    $semester = Semester::find(Request::get("semester_id"));
-                    $query->where("semester_select", "`seminare`.`start_time` <= :semester_start AND (`seminare`.`duration_time` = -1 OR `seminare`.`duration_time` + `seminare`.`start_time` >= :semester_start OR (`seminare`.`duration_time` = '0' AND `seminare`.`start_time` = :semester_start))", array(
-                        'semester_start' => $semester['beginn']
-                    ));
-                }
-                $GLOBALS['user']->cfg->store('ADMIN_COURSES_SEARCHTEXT', Request::get("course_search"));
-                if (Request::get("course_search")) {
-                    $query->join("dozenten_su", "seminar_user", "`seminare`.`Seminar_id` = dozenten_su.Seminar_id AND dozenten_su.status = 'dozent'");
-                    $query->join("dozent", "auth_user_md5", "dozent.user_id = dozenten_su.user_id");
-                    $query->where("search", "`seminare`.name LIKE :search OR `seminare`.`VeranstaltungsNummer` LIKE :search OR CONCAT(dozent.Vorname, ' ', dozent.Nachname, ' ', dozent.username, ' ', dozent.Email) LIKE :search", array(
-                        'search' => "%".Request::get("course_search")."%"
-                    ));
-                }
-                $GLOBALS['user']->cfg->store('ADMIN_COURSES_STUDYAREAS', Request::get("study_area_ids"));
-                if (Request::get("study_area_ids")) {
-                    $sem_tree_ids = explode(",", Request::get("study_area_ids"));
-                    //possibly add all sub-items
-                    $query->join("seminar_sem_tree", "`seminar_sem_tree`.`seminar_id` = `seminare`.`Seminar_id`");
-                    $query->join("sem_tree", "`sem_tree`.`sem_tree_id` = `seminar_sem_tree`.`sem_tree_id`");
-                    $query->where("sem_tree_ids", "`seminar_sem_tree`.`sem_tree_id` IN (:sem_tree_ids) OR `sem_tree`.`parent_id` IN (:sem_tree_ids)", array(
-                        'sem_tree_ids' => $sem_tree_ids
-                    ));
-                }
-                $GLOBALS['user']->cfg->store('ADMIN_COURSES_VISIBILITY', Request::get("visibility"));
-                if (Request::get("visibility")) {
-                    $query->where("visibility", "`seminare`.`visible` = :visible", array(
-                        'visible' => Request::get("visibility") === "visible" ? 1 : 0
-                    ));
-                }
+
                 break;
             case "persons":
-                //$query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
                 $query->join("seminar_user", "`seminar_user`.`Seminar_id` = `termine`.`range_id`");
-                if (Request::get("person_status")) {
-                    $status = json_decode(Request::get("person_status"));
-                    $GLOBALS['user']->cfg->store('ADMIN_USER_STATUS', serialize($status));
-
-                    $person_status = array_intersect($status, compact("user autor tutor dozent admin root"));
-                    $person_roles = array_diff($status, compact("user autor tutor dozent admin root"));
-
-                    if (count($person_status) + count($person_roles) > 0) {
-                        $query->join("auth_user_md5", "`seminar_user`.`user_id` = `auth_user_md5`.`user_id`");
-                        $query->join("roles_user", "`seminar_user`.`user_id` = `roles_user`.`userid`");
-                        $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status) OR `roles_user`.`roleid` IN (:person_roles) ", array(
-                            'person_status' => array_intersect($status, compact("user autor tutor dozent admin root")),
-                            'person_roles' => array_diff($status, compact("user autor tutor dozent admin root"))
-                        ));
-                    }
-                }
 
                 //Zweiter Query für private Termine:
                 break;
             case "resources":
                 break;
         }
-        foreach (PluginManager::getInstance()->getPlugins("VeranstaltungsplanungFilter") as $plugin) {
-            foreach ($plugin->getVeranstaltungsplanungFilter() as $name => $filter) {
-                $this->filters[$name] = $filter;
-            }
+        $this->vpfilters = Veranstaltungsplanung::getFilters();
+        foreach ($this->vpfilters[Request::get("object_type")] as $filter) {
+            $filter->applyFilter($query);
         }
 
         foreach ($query->fetchAll("CourseDate") as $termin) {
@@ -320,178 +258,11 @@ class PlanerController extends PluginController
         return $events;
     }
 
-    public function getWidgets() {
-        if (self::$widgets) {
-            return self::$widgets;
-        }
-
-        $filters = array();
-
-        $textsearch = new SearchWidget();
-        $textsearch->addNeedle(
-            _('Freie Suche'),
-            'course_search',
-            true,
-            null,
-            null,
-            $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT
-        );
-        $textsearch->class = "courses";
-        $textsearch->addLayoutCSSClass("courses");
-        $filters['course_search'] = array(
-            'widget' => $textsearch,
-            'object_type' => "courses",
-            'value' => $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT
-        );
-
-
-        /*$semester_select = new SelectWidget(
-            _("Semester"),
-            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
-            "semester_id"
-        );
-        $semester_select->addLayoutCSSClass("courses");
-        $semester_select->addElement(new SelectElement(
-            "",
-            "",
-            false),
-            'select-'
-        );
-        foreach (array_reverse(Semester::getAll()) as $semester) {
-            $semester_select->addElement(new SelectElement(
-                $semester->getId(),
-                $semester['name'],
-                $semester->getId() === $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE),
-                'select-'.$semester->getId()
-            );
-        }
-        $filters['semester_id'] = array(
-            'widget' => $semester_select,
-            'object_type' => "courses",
-            'value' => $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE
-        );*/
-
-
-        $institutes = new SelectWidget(
-            _("Einrichtung"),
-            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
-            "institut_id"
-        );
-        $institutes->addLayoutCSSClass("courses");
-        $institutes->addElement(new SelectElement(
-            "",
-            "",
-            false),
-            'select-'
-        );
-        foreach (Institute::getMyInstitutes() as $institut) {
-            $institutes->addElement(new SelectElement(
-                $institut['Institut_id'],
-                ($institut['is_fak'] ? "" : "  ").$institut['Name'],
-                $institut['Institut_id'] === $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT),
-                'select-'.$institut['Institut_id']
-            );
-        }
-        $filters['institut_id'] = array(
-            'widget' => $institutes,
-            'object_type' => "courses",
-            'value' => $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT
-        );
-
-
-
-        $study_area = new StudyAreaSelector();
-        $study_area->addLayoutCSSClass("courses");
-        $filters['study_area_ids'] = array(
-            'widget' => $study_area,
-            'object_type' => "courses",
-            'value' => $GLOBALS['user']->cfg->ADMIN_COURSES_STUDYAREAS
-        );
-
-
-        $visibility = new SelectWidget(
-            _("Sichtbarkeit"),
-            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
-            "visibility"
-        );
-        $visibility->addLayoutCSSClass("courses");
-        $visibility->addElement(new SelectElement(
-            "",
-            "",
-            false),
-            'select-'
-        );
-        $visibility->addElement(new SelectElement(
-            "visible",
-            _("Nur sichtbare"),
-            $GLOBALS['user']->cfg->ADMIN_COURSES_VISIBILITY === "visible"),
-            'select-visible'
-        );
-        $visibility->addElement(new SelectElement(
-            "invisible",
-            _("Nur versteckte"),
-            $GLOBALS['user']->cfg->ADMIN_COURSES_VISIBILITY === "invisible"),
-            'select-invisible'
-        );
-        $filters['visibility'] = array(
-            'widget' => $visibility,
-            'object_type' => "courses",
-            'value' => $GLOBALS['user']->cfg->ADMIN_COURSES_VISIBILITY
-        );
-
-
-        $person_status = new SelectWidget(
-            _("Rollen-Filter"),
-            PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
-            "person_status",
-            "get",
-            true
-        );
-        $person_status->addLayoutCSSClass("persons");
-        $status_config = $GLOBALS['user']->cfg->ADMIN_USER_STATUS ? unserialize($GLOBALS['user']->cfg->ADMIN_USER_STATUS) : array();
-        foreach (array("user", "autor", "tutor", "dozent", "admin", "root") as $status) {
-            $person_status->addElement(new SelectElement(
-                $status,
-                ucfirst($status),
-                in_array($status, $status_config)
-            ));
-        }
-        foreach (RolePersistence::getAllRoles() as $role) {
-            if (!$role->getSystemType()) {
-                $person_status->addElement(new SelectElement(
-                    $role->getRoleid(),
-                    $role->getRolename(),
-                    in_array($role->getRoleid(), $status_config)
-                ));
-            }
-        }
-        $filters['person_status'] = array(
-            'widget' => $person_status,
-            'object_type' => "persons",
-            'value' => json_encode($status_config)
-        );
-
-
-        foreach (PluginManager::getInstance()->getPlugins("VeranstaltungsplanungFilter") as $plugin) {
-            foreach ($plugin->getVeranstaltungsplanungFilter() as $name => $filter) {
-                $this->filters[$name] = $filter;
-            }
-        }
-
-        self::$widgets = $filters;
-
-        return $filters;
-    }
 
 
     public function settings_action()
     {
-        $this->filters = array();
-        foreach (get_declared_classes() as $class) {
-            if (in_array('VPFilter', class_implements($class))) {
-                $this->filters[$class::context()][] = new $class();
-            }
-        }
+        $this->filters = Veranstaltungsplanung::getFilters();
         if (Request::isPost()) {
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_LINE', Request::get("line"));
 
@@ -500,7 +271,6 @@ class PlanerController extends PluginController
                 json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("hidden_days")))
             );
             $all_filters = array_merge(
-                array_keys($this->getWidgets()),
                 array_map(function ($f) { return get_class($f); }, (array) $this->filters['courses']),
                 array_map(function ($f) { return get_class($f); }, (array) $this->filters['persons']),
                 array_map(function ($f) { return get_class($f); }, (array) $this->filters['resources'])
@@ -628,21 +398,7 @@ class PlanerController extends PluginController
                 'institut_id' => Request::get("institut_id")
             ));
         }
-        $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', Request::get("semester_id"));
-        if (Request::get("semester_id") && Request::get("semester_id") !== "all") {
-            $semester = Semester::find(Request::get("semester_id"));
-            $query->where("semester_select", "`seminare`.`start_time` <= :semester_start AND (`seminare`.`duration_time` = -1 OR `seminare`.`duration_time` + `seminare`.`start_time` >= :semester_start OR (`seminare`.`duration_time` = '0' AND `seminare`.`start_time` = :semester_start))", array(
-                'semester_start' => $semester['beginn']
-            ));
-        }
-        $GLOBALS['user']->cfg->store('ADMIN_COURSES_SEARCHTEXT', Request::get("course_search"));
-        if (Request::get("course_search")) {
-            $query->join("dozenten_su", "seminar_user", "`seminare`.`Seminar_id` = dozenten_su.Seminar_id AND dozenten_su.status = 'dozent'");
-            $query->join("dozent", "auth_user_md5", "dozent.user_id = dozenten_su.user_id");
-            $query->where("search", "`seminare`.name LIKE :search OR `seminare`.`VeranstaltungsNummer` LIKE :search OR CONCAT(dozent.Vorname, ' ', dozent.Nachname, ' ', dozent.username, ' ', dozent.Email) LIKE :search", array(
-                'search' => "%".Request::get("course_search")."%"
-            ));
-        }
+
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_STUDYAREAS', Request::get("study_area_ids"));
         if (Request::get("study_area_ids")) {
             $sem_tree_ids = explode(",", Request::get("study_area_ids"));

@@ -5,6 +5,7 @@ STUDIP.StudyareaTree = {
         var id = jQuery(this).closest("li").attr("class");
         var ids = jQuery("#study_area_tree input[name=study_area_ids]").val().split(",");
         ids = _.without(ids, id);
+        console.log(ids);
         jQuery("#study_area_tree input[name=study_area_ids]").val(ids.join(","));
         jQuery("#study_area_tree input[name=study_area_ids]").trigger("change");
         jQuery(this).closest('li').remove();

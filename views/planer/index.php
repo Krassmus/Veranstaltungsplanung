@@ -9,11 +9,14 @@
      data-default_date="<?= date("r", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTDATE ?: time()) ?>"></div>
 
 <input type="hidden" class="date_fetch_params" id="object_type" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) ?>">
-<? foreach ($filters as $name => $filter) : ?>
-    <input type="hidden"
-           data-object_type="<?= htmlReady($filter['object_type']) ?>"
-           class="date_fetch_params" id="<?= htmlReady($name) ?>"
-           value="<?= $filter['value'] ? htmlReady($filter['value']) : "" ?>">
+<? foreach ($vpfilters as $object_type => $filterset) : ?>
+    <? foreach ($filterset as $filter) : ?>
+        <input type="hidden"
+               data-object_type="<?= htmlReady($object_type) ?>"
+               class="date_fetch_params"
+               id="<?= htmlReady($filter->getParameterName()) ?>"
+               value="">
+    <? endforeach ?>
 <? endforeach ?>
 
 <style>
@@ -51,11 +54,6 @@ $select->addElement(new SelectElement(
 Sidebar::Get()->addWidget($select);
 
 $disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) ?: array();
-foreach ($filters as $name => $filter) {
-    if (!in_array($name, $disabled_filters)) {
-        Sidebar::Get()->addWidget($filter['widget'], $name);
-    }
-}
 
 foreach ($vpfilters as $object_type => $filterset) {
     foreach ($filterset as $filter) {
