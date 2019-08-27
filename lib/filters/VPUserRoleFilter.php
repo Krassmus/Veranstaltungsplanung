@@ -61,19 +61,32 @@ class VPUserRoleFilter implements VPFilter
 
     public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
     {
-        $status = json_decode(Request::get("person_status"));
+        $status = json_decode(Request::get("person_status"), true);
         $GLOBALS['user']->cfg->store('ADMIN_USER_STATUS', serialize($status));
         if (Request::get("person_status")) {
-            $person_status = array_intersect($status, compact("user autor tutor dozent admin root"));
-            $person_roles = array_diff($status, compact("user autor tutor dozent admin root"));
+            $person_status = array_intersect($status, words("user autor tutor dozent admin root"));
+            $person_roles = array_diff($status, words("user autor tutor dozent admin root"));
 
             if (count($person_status) + count($person_roles) > 0) {
                 $query->join("auth_user_md5", "`seminar_user`.`user_id` = `auth_user_md5`.`user_id`");
-                $query->join("roles_user", "`seminar_user`.`user_id` = `roles_user`.`userid`");
-                $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status) OR `roles_user`.`roleid` IN (:person_roles) ", array(
-                    'person_status' => array_intersect($status, compact("user autor tutor dozent admin root")),
-                    'person_roles' => array_diff($status, compact("user autor tutor dozent admin root"))
-                ));
+                if (count($person_roles)) {
+                    $query->join(
+                        "roles_user",
+                        "roles_user",
+                        "`seminar_user`.`user_id` = `roles_user`.`userid`",
+                        "LEFT JOIN"
+                    );
+                }
+                if (count($person_roles)) {
+                    $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status) OR `roles_user`.`roleid` IN (:person_roles) ", array(
+                        'person_status' => $person_status,
+                        'person_roles' => $person_roles
+                    ));
+                } else {
+                    $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status)", array(
+                        'person_status' => $person_status
+                    ));
+                }
             }
         }
     }

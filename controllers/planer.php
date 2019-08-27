@@ -85,11 +85,22 @@ class PlanerController extends PluginController
 
                 break;
             case "persons":
-                $query->join("seminar_user", "`seminar_user`.`Seminar_id` = `termine`.`range_id`");
+                $query->join(
+                    "termin_related_persons",
+                    "termin_related_persons",
+                    "`termin_related_persons`.`range_id` = `termine`.`termin_id`",
+                    "LEFT JOIN"
+                );
+                $query->join(
+                    "seminar_user",
+                    "seminar_user",
+                    "`seminar_user`.`Seminar_id` = `termine`.`range_id` AND (termin_related_persons.user_id IS NULL OR termin_related_persons.user_id = seminar_user.user_id)"
+                );
 
                 //Zweiter Query für private Termine:
                 break;
             case "resources":
+                $query->join("resources_assign", "`resources_assign`.`assign_user_id` = `termine`.`termin_id`");
                 break;
         }
         $this->vpfilters = Veranstaltungsplanung::getFilters();

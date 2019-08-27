@@ -38,15 +38,16 @@ class VPResourceTreeFilter implements VPFilter
 
     public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
     {
-        /*$GLOBALS['user']->cfg->store('ADMIN_COURSES_STUDYAREAS', Request::get("study_area_ids"));
-        if (Request::get("study_area_ids")) {
-            $sem_tree_ids = explode(",", Request::get("study_area_ids"));
+        $GLOBALS['user']->cfg->store('ADMIN_RESOURCES', Request::get("resource_ids"));
+        $resource_ids = explode(",", Request::get("resource_ids"));
+        if ($resource_ids && count($resource_ids)) {
             //possibly add all sub-items
-            $query->join("seminar_sem_tree", "`seminar_sem_tree`.`seminar_id` = `seminare`.`Seminar_id`");
-            $query->join("sem_tree", "`sem_tree`.`sem_tree_id` = `seminar_sem_tree`.`sem_tree_id`");
-            $query->where("sem_tree_ids", "`seminar_sem_tree`.`sem_tree_id` IN (:sem_tree_ids) OR `sem_tree`.`parent_id` IN (:sem_tree_ids)", array(
-                'sem_tree_ids' => $sem_tree_ids
+
+            //$query->join("seminar_sem_tree", "`seminar_sem_tree`.`seminar_id` = `seminare`.`Seminar_id`");
+            //$query->join("sem_tree", "`sem_tree`.`sem_tree_id` = `seminar_sem_tree`.`sem_tree_id`");
+            $query->where("resource_ids", "`resources_assign`.`resource_id` IN (:resource_ids)", array(
+                'resource_ids' => $resource_ids
             ));
-        }*/
+        }
     }
 }

@@ -6,7 +6,6 @@ STUDIP.StudyareaTree = {
         var object_tree = $(this).closest('.object_tree');
         var ids = $(object_tree).find("input.ids").val().split(",");
         ids = _.without(ids, id);
-        console.log(ids);
         $(object_tree).find("input.ids").val(ids.join(","));
         $(object_tree).find("input.ids").trigger("change");
         jQuery(this).closest('li').remove();
