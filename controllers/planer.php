@@ -47,7 +47,7 @@ class PlanerController extends PluginController
             $termin->store();
             $output['test'] = 1;
         } else {
-
+            $output['rejected'] = 1;
         }
         $this->render_json($output);
     }
@@ -96,6 +96,12 @@ class PlanerController extends PluginController
                     "seminar_user",
                     "`seminar_user`.`Seminar_id` = `termine`.`range_id` AND (termin_related_persons.user_id IS NULL OR termin_related_persons.user_id = seminar_user.user_id)"
                 );
+                $query->join(
+                    "auth_user_md5",
+                    "auth_user_md5",
+                    "`seminar_user`.`user_id` = `auth_user_md5`.`user_id`"
+                );
+
 
                 //Zweiter Query für private Termine:
                 break;
@@ -109,13 +115,59 @@ class PlanerController extends PluginController
         }
 
         foreach ($query->fetchAll("CourseDate") as $termin) {
+            $title = $termin->course['name'];
+            if (Request::get("object_type") === "resources") {
+                $title = $termin->room_assignment->resource->getName().": ".$title;
+            }
+            if (Request::get("object_type") === "persons") {
+                $dozenten = $termin->dozenten;
+                if (!count($dozenten)) {
+                    $dozenten = $termin->course->members->filter(function ($m) { return $m['status'] === "dozent"; });
+                    $dozenten = implode(", ", $dozenten->pluck("nachname"));
+                } else {
+                    $dozenten = implode(", ", array_map(function($d) { return $d['nachname']; }, $dozenten->toArray()));
+                }
+                $title = $dozenten.": ".$title;
+            }
             $termine[] = array(
                 'id' => "termine_".$termin->getId(),
-                'title' => $termin->course['name'],
+                'title' => $title,
                 'start' => date("c", $termin['date']),
                 'end' => date("c", $termin['end_time']),
-                'classes' => array("course_".$termin['range_id'])
+                'classNames' => array("course_".$termin['range_id'])
             );
+        }
+
+        if (Request::get("object_type") === "persons") {
+            $query = new \Veranstaltungsplanung\SQLQuery(
+                "event_data",
+                "private_termine"
+            );
+            $query->where("start", "`event_data`.`start` >= :start", array(
+                'start' => $start
+            ));
+            $query->where("end", "`event_data`.`end` <= :end", array(
+                'end' => $end
+            ));
+            $query->join(
+                "auth_user_md5",
+                "auth_user_md5",
+                "`event_data`.`author_id` = `auth_user_md5`.`user_id`"
+            );
+            $query->groupBy("`event_data`.`event_id`");
+            foreach ($this->vpfilters['persons'] as $filter) {
+                $filter->applyFilter($query);
+            }
+
+            foreach ($query->fetchAll("EventData") as $termin) {
+                $termine[] = array(
+                    'id' => "eventdata_".$termin->getId(),
+                    'title' => $termin->author['nachname'].": ".($termin['class'] === "PRIVATE" ? _("Privater Termin") : $termin['summary'].($termin['class'] === "CONFIDENTIAL" ? _(" (vertraulich)") : "")),
+                    'start' => date("c", $termin['start']),
+                    'end' => date("c", $termin['end']),
+                    'classNames' => array("event_data")
+                );
+            }
         }
 
         $this->render_json($termine);

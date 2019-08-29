@@ -33,8 +33,8 @@ class VPCourseInstituteFilter implements VPFilter
         );
         $institutes->addLayoutCSSClass("courses");
         $institutes->addElement(new SelectElement(
-            "",
-            "",
+            "all",
+            _("Alle"),
             false),
             'select-'
         );

@@ -51,8 +51,6 @@ STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
     var revert = info.revert;
     var start = parseInt(info.event.start.getTime() / 1000, 10).toFixed(0);
     var end = parseInt(info.event.end.getTime() / 1000, 10).toFixed(0);
-    console.log(start);
-    console.log(end);
     //console.log(info.event.end);
 
     //AJAX to change; if there is a collision open a dialog and ask what to do
@@ -65,7 +63,12 @@ STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
         },
         "dataType": "json",
         "success": function (output) {
-
+            if (output.rejected) {
+                info.revert();
+            }
+        },
+        "error": function () {
+            info.revert();
         }
     });
 };

@@ -33,8 +33,8 @@ class VPUserInstituteFilter implements VPFilter
         );
         $institutes->addLayoutCSSClass("persons");
         $institutes->addElement(new SelectElement(
-            "",
-            "",
+            "all",
+            _("Alle"),
             false),
             'select-'
         );
@@ -53,7 +53,7 @@ class VPUserInstituteFilter implements VPFilter
     {
         $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("user_institut_id"));
         if (Request::get("user_institut_id") && Request::get("user_institut_id") !== "all") {
-            $query->join("user_inst", "`user_inst`.`user_id` = `seminar_user`.`user_id`");
+            $query->join("user_inst", "`user_inst`.`user_id` = `auth_user_md5`.`user_id`");
             $query->join("Institute", "`Institute`.`Institut_id` = `user_inst`.`Institut_id`");
             $query->where("user_inst", "`user_inst`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", array(
                 'institut_id' => Request::get("user_institut_id")

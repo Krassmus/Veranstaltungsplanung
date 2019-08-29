@@ -68,12 +68,11 @@ class VPUserRoleFilter implements VPFilter
             $person_roles = array_diff($status, words("user autor tutor dozent admin root"));
 
             if (count($person_status) + count($person_roles) > 0) {
-                $query->join("auth_user_md5", "`seminar_user`.`user_id` = `auth_user_md5`.`user_id`");
                 if (count($person_roles)) {
                     $query->join(
                         "roles_user",
                         "roles_user",
-                        "`seminar_user`.`user_id` = `roles_user`.`userid`",
+                        "`auth_user_md5`.`user_id` = `roles_user`.`userid`",
                         "LEFT JOIN"
                     );
                 }

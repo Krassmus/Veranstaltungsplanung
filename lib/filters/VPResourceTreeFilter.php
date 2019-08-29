@@ -40,11 +40,8 @@ class VPResourceTreeFilter implements VPFilter
     {
         $GLOBALS['user']->cfg->store('ADMIN_RESOURCES', Request::get("resource_ids"));
         $resource_ids = explode(",", Request::get("resource_ids"));
-        if ($resource_ids && count($resource_ids)) {
+        if (Request::get("resource_ids") && $resource_ids && count($resource_ids)) {
             //possibly add all sub-items
-
-            //$query->join("seminar_sem_tree", "`seminar_sem_tree`.`seminar_id` = `seminare`.`Seminar_id`");
-            //$query->join("sem_tree", "`sem_tree`.`sem_tree_id` = `seminar_sem_tree`.`sem_tree_id`");
             $query->where("resource_ids", "`resources_assign`.`resource_id` IN (:resource_ids)", array(
                 'resource_ids' => $resource_ids
             ));
