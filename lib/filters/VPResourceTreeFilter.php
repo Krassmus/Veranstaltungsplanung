@@ -42,7 +42,17 @@ class VPResourceTreeFilter implements VPFilter
         $resource_ids = explode(",", Request::get("resource_ids"));
         if (Request::get("resource_ids") && $resource_ids && count($resource_ids)) {
             //possibly add all sub-items
-            $query->where("resource_ids", "`resources_assign`.`resource_id` IN (:resource_ids)", array(
+            $query->join(
+                "resources_objects2",
+                "resources_objects",
+                "`resources_objects2`.`resource_id` = `resources_objects`.`parent_id`"
+            );
+            $query->join(
+                "resources_objects3",
+                "resources_objects",
+                "`resources_objects3`.`resource_id` = `resources_objects2`.`parent_id`"
+            );
+            $query->where("resource_ids", "(`resources_objects`.`resource_id` IN (:resource_ids) OR `resources_objects2`.`resource_id` IN (:resource_ids) OR `resources_objects3`.`resource_id` IN (:resource_ids))", array(
                 'resource_ids' => $resource_ids
             ));
         }

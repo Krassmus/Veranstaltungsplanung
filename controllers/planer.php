@@ -107,6 +107,7 @@ class PlanerController extends PluginController
                 break;
             case "resources":
                 $query->join("resources_assign", "`resources_assign`.`assign_user_id` = `termine`.`termin_id`");
+                $query->join("resources_objects", "`resources_assign`.`resource_id` = `resources_objects`.`resource_id`");
                 break;
         }
         $this->vpfilters = Veranstaltungsplanung::getFilters();
@@ -450,40 +451,52 @@ class PlanerController extends PluginController
         }
 
         PageLayout::setTitle(sprintf(_("Termin erstellen %s - %s"), date("d.m.Y H:i", $this->start), date((floor($this->start / 86400) == floor($this->end / 86400) ? "H:i" : "d.m.Y H:i "), $this->end)));
-        $query = new \Veranstaltungsplanung\SQLQuery(
-            "seminare",
-            "veranstaltungsplanung_seminare"
-        );
 
-        $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id"));
-        if (Request::get("institut_id") && Request::get("institut_id") !== "all") {
-            $query->join("Institute", "`Institute`.`Institut_id` = `seminare`.`Institut_id`");
-            $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", array(
-                'institut_id' => Request::get("institut_id")
-            ));
+        switch (Request::get("object_type")) {
+            case "courses":
+                $query = new \Veranstaltungsplanung\SQLQuery(
+                    "seminare",
+                    "veranstaltungsplanung_courses"
+                );
+                $query->groupBy("`seminare`.`Seminar_id`");
+                $query->orderBy("`seminare`.name ASC");
+
+                $this->vpfilters = Veranstaltungsplanung::getFilters();
+                foreach ($this->vpfilters[Request::get("object_type")] as $filter) {
+                    $filter->applyFilter($query);
+                }
+                $this->courses = $query->fetchAll("Course");
+                break;
+            case "persons":
+                $query = new \Veranstaltungsplanung\SQLQuery(
+                    "auth_user_md5",
+                    "veranstaltungsplanung_persons"
+                );
+                $query->groupBy("`auth_user_md5`.`user_id`");
+                $query->orderBy("`auth_user_md5`.Nachname ASC, `auth_user_md5`.Vorname ASC");
+
+                $this->vpfilters = Veranstaltungsplanung::getFilters();
+                foreach ($this->vpfilters[Request::get("object_type")] as $filter) {
+                    $filter->applyFilter($query);
+                }
+                $this->persons = $query->fetchAll("User");
+                break;
+            case "resources":
+                $query = new \Veranstaltungsplanung\SQLQuery(
+                    "resources_objects",
+                    "veranstaltungsplanung_resources"
+                );
+                $query->groupBy("`resources_objects`.`resource_id`");
+                $query->orderBy("`resources_objects`.name ASC");
+
+                $this->vpfilters = Veranstaltungsplanung::getFilters();
+                foreach ($this->vpfilters[Request::get("object_type")] as $filter) {
+                    $filter->applyFilter($query);
+                }
+                $this->resources = $query->fetchAll();
+                break;
         }
 
-        $GLOBALS['user']->cfg->store('ADMIN_COURSES_STUDYAREAS', Request::get("study_area_ids"));
-        if (Request::get("study_area_ids")) {
-            $sem_tree_ids = explode(",", Request::get("study_area_ids"));
-            //possibly add all sub-items
-            $query->join("seminar_sem_tree", "`seminar_sem_tree`.`seminar_id` = `seminare`.`Seminar_id`");
-            $query->join("sem_tree", "`sem_tree`.`sem_tree_id` = `seminar_sem_tree`.`sem_tree_id`");
-            $query->where("sem_tree_ids", "`seminar_sem_tree`.`sem_tree_id` IN (:sem_tree_ids) OR `sem_tree`.`parent_id` IN (:sem_tree_ids)", array(
-                'sem_tree_ids' => $sem_tree_ids
-            ));
-        }
-        $GLOBALS['user']->cfg->store('ADMIN_COURSES_VISIBILITY', Request::get("visibility"));
-        if (Request::get("visibility")) {
-            $query->where("visibility", "`seminare`.`visible` = :visible", array(
-                'visible' => Request::get("visibility") === "visible" ? 1 : 0
-            ));
-        }
-
-        $query->groupBy("`seminare`.`Seminar_id`");
-        $query->orderBy("`seminare`.name ASC");
-
-        $this->courses = $query->fetchAll("Course");
 
         if (Config::get()->RESOURCES_ENABLE) {
             $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
