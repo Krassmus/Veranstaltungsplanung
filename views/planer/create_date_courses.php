@@ -3,12 +3,12 @@
       action="<?= PluginEngine::getLink($plugin, array(), "planer/create_date") ?>"
       data-dialog>
 
+    <input type="hidden" name="object_type" value="<?= htmlReady(Request::get("object_type")) ?>">
     <input type="hidden" name="start" value="<?= htmlReady($start) ?>">
     <input type="hidden" name="end" value="<?= htmlReady($end) ?>">
 
     <label>
-        <?= _("Kontext auswählen") ?>
-        <? if (Request::get("object_type") === "courses") : ?>
+        <?= _("Veranstaltung auswählen") ?>
             <select name="course_id" required onChange="STUDIP.Veranstaltungsplanung.getDozenten.call(this);">
                 <option value=""> - </option>
                 <? foreach ($courses as $course) : ?>
@@ -17,25 +17,6 @@
                     </option>
                 <? endforeach ?>
             </select>
-        <? elseif(Request::get("object_type") === "persons") : ?>
-            <select name="user_id" required>
-                <option value=""> - </option>
-                <? foreach ($persons as $user) : ?>
-                    <option value="<?= htmlReady($user->getId()) ?>">
-                        <?= htmlReady($user->getFullName()) ?>
-                    </option>
-                <? endforeach ?>
-            </select>
-        <? else : ?>
-            <select name="resource_id" required>
-                <option value=""> - </option>
-                <? foreach ($resources as $resource_data) : ?>
-                    <option value="<?= htmlReady($resource_data['resource_id']) ?>">
-                        <?= htmlReady($resource_data['name']) ?>
-                    </option>
-                <? endforeach ?>
-            </select>
-        <? endif ?>
     </label>
 
     <label>

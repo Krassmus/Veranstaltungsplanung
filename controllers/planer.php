@@ -355,6 +355,7 @@ class PlanerController extends PluginController
         $this->end = Request::int("end");
 
         if (Request::isPost()) {
+            //Add course date or booking of resource or personal event?
             if (Request::option("metadate")) {
                 $cycledate = new SeminarCycleDate();
                 $cycledate['seminar_id'] = Request::option("course_id");
@@ -448,6 +449,7 @@ class PlanerController extends PluginController
             $this->response->add_header("X-Dialog-Execute", "STUDIP.Veranstaltungsplanung.reloadCalendar");
             $this->response->add_header("X-Dialog-Close", 1);
             $this->render_nothing();
+            return;
         }
 
         PageLayout::setTitle(sprintf(_("Termin erstellen %s - %s"), date("d.m.Y H:i", $this->start), date((floor($this->start / 86400) == floor($this->end / 86400) ? "H:i" : "d.m.Y H:i "), $this->end)));
@@ -503,6 +505,7 @@ class PlanerController extends PluginController
         }
         $this->semester = Semester::findByTimestamp($this->start);
         $this->in_semester = $this->semester && ($this->semester['vorles_beginn'] <= $this->start && $this->semester['vorles_ende'] >= $this->end);
+        $this->render_template("planer/create_date_".Request::get("object_type"));
     }
 
     public function get_dozenten_action($seminar_id)

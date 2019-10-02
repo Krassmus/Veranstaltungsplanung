@@ -84,6 +84,20 @@ STUDIP.Veranstaltungsplanung.appendFragment = function () {
     return fragment;
 };
 
+STUDIP.Veranstaltungsplanung.rearrangeSidebar = function () {
+    var object_type = jQuery(".change_type").val();
+    if (object_type !== "courses") {
+        jQuery(".sidebar-widget.courses").hide();
+    }
+    if (object_type !== "persons") {
+        jQuery(".sidebar-widget.persons").hide();
+    }
+    if (object_type !== "resources") {
+        jQuery(".sidebar-widget.resources").hide();
+    }
+    jQuery(".sidebar-widget." + object_type).show();
+};
+
 STUDIP.Veranstaltungsplanung.reloadCalendar = function () {
     STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
 };
@@ -133,20 +147,7 @@ jQuery(function () {
     jQuery(".sidebar form").on("submit", function () {
         return false;
     });
-    jQuery(".change_type").on("change", function () {
-        var object_type = jQuery(".change_type").val();
-        if (object_type !== "courses") {
-            jQuery(".sidebar-widget.courses").hide();
-        }
-        if (object_type !== "persons") {
-            jQuery(".sidebar-widget.persons").hide();
-        }
-        if (object_type !== "resources") {
-            jQuery(".sidebar-widget.resources").hide();
-        }
-        jQuery(".sidebar-widget." + object_type).show();
-
-    });
+    jQuery(".change_type").on("change", STUDIP.Veranstaltungsplanung.rearrangeSidebar);
     jQuery(".sidebar select, .sidebar input").on("change", function () {
         var name = jQuery(this).attr("name").replace(/\[\]/, "");
         var val = jQuery(this).val();
@@ -203,18 +204,6 @@ jQuery(function () {
             data["start"] = arg.start.getTime() / 1000;
             data["end"] = arg.end.getTime() / 1000;
             STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/create_date', data));
-
-            /*var title = prompt('Event Title:');
-            if (title) {
-                STUDIP.Veranstaltungsplanung.addEvent({
-                    title: title,
-                    start: arg.start,
-                    end: arg.end,
-                    allDay: arg.allDay,
-                    textColor: 'black'
-                });
-            }*/
-            //STUDIP.Veranstaltungsplanung.unselect();
         },
         editable: true,
         defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : "now",
@@ -238,5 +227,5 @@ jQuery(function () {
 
     STUDIP.Veranstaltungsplanung.calendar.render();
 
-    jQuery(".sidebar select[name=object_type]").trigger("change");
+    STUDIP.Veranstaltungsplanung.rearrangeSidebar();
 });
