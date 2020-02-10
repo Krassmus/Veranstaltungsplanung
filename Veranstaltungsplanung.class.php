@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__."/lib/SQLQuery.class.php";
-require_once __DIR__."/lib/VPResource.php";
 require_once __DIR__."/lib/filters/VPFilter.interface.php";
 
 require_once __DIR__."/lib/filters/VPCourseSearchFilter.php";

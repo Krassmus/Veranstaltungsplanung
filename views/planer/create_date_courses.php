@@ -36,23 +36,25 @@
         </label>
     <? endif ?>
 
-    <? if (Config::get()->RESOURCES_ENABLE) : ?>
+    <? if (Config::get()->RESOURCES_ENABLE
+        && ($selectable_rooms || $room_search)): ?>
         <label>
             <?= _('Raum') ?>
-            <select name="resource_id">
-                <option value="nothing"><?= _('<em>Keinen</em> Raum buchen') ?></option>
-                <? if ($resList->numberOfRooms()) : ?>
-                    <? foreach ($resList->getRooms() as $room_id => $room) : ?>
-                        <option value="<?= $room_id ?>"
-                            <?= Request::option('room') == $room_id ? 'selected' : '' ?>>
-                            <?= htmlReady($room->getName()) ?>
-                            <? if ($room->getSeats() > 1) : ?>
-                                <?= sprintf(_('(%d Sitzplätze)'), $room->getSeats()) ?>
+            <? if ($room_search): ?>
+                <?= $room_search->render() ?>
+            <? else: ?>
+                <select name="room_id" style="width: calc(100% - 23px);">
+                    <option value=""><?= _('<em>Keinen</em> Raum buchen') ?></option>
+                    <? foreach ($selectable_rooms as $room): ?>
+                        <option value="<?= htmlReady($room->id) ?>">
+                            <?= htmlReady($room->name) ?>
+                            <? if ($room->seats > 1) : ?>
+                                <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
                             <? endif ?>
                         </option>
                     <? endforeach ?>
-                <? endif ?>
-            </select>
+                </select>
+            <? endif ?>
         </label>
     <? endif ?>
 

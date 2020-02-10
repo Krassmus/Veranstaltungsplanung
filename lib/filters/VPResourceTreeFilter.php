@@ -43,16 +43,16 @@ class VPResourceTreeFilter implements VPFilter
         if (Request::get("resource_ids") && $resource_ids && count($resource_ids)) {
             //possibly add all sub-items
             $query->join(
-                "resources_objects2",
-                "resources_objects",
-                "`resources_objects2`.`resource_id` = `resources_objects`.`parent_id`"
+                "resources2",
+                "resources",
+                "`resources2`.`id` = `resources`.`parent_id`"
             );
             $query->join(
-                "resources_objects3",
-                "resources_objects",
-                "`resources_objects3`.`resource_id` = `resources_objects2`.`parent_id`"
+                "resources3",
+                "resources",
+                "`resources3`.`id` = `resources2`.`parent_id`"
             );
-            $query->where("resource_ids", "(`resources_objects`.`resource_id` IN (:resource_ids) OR `resources_objects2`.`resource_id` IN (:resource_ids) OR `resources_objects3`.`resource_id` IN (:resource_ids))", array(
+            $query->where("resource_ids", "(`resources`.`id` IN (:resource_ids) OR `resources2`.`id` IN (:resource_ids) OR `resources3`.`id` IN (:resource_ids))", array(
                 'resource_ids' => $resource_ids
             ));
         }

@@ -2,7 +2,7 @@
     if (typeof STUDIP.Veranstaltungsplanung === "undefined") {
         STUDIP.Veranstaltungsplanung = {};
     }
-    STUDIP.Veranstaltungsplanung.hidden_days = <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ?: array() ?>;
+    STUDIP.Veranstaltungsplanung.hidden_days = <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ?: "[]" ?>;
 </script>
 
 <div id="calendar"

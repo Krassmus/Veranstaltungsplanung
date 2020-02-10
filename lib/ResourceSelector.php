@@ -14,14 +14,14 @@ class ResourceSelector extends SidebarWidget
         $factory  = new Flexi_TemplateFactory(__DIR__ . '/../views/');
         $this->template = $factory->open('resource_tree/widget.php');
 
-        $selected_resources = VPResource::findMany(explode(",", $GLOBALS['user']->cfg->ADMIN_RESOURCES));
+        $selected_resources = Resource::findMany(explode(",", $GLOBALS['user']->cfg->ADMIN_RESOURCES));
 
         if (count($selected_resources) === 1) {
-            $parent = VPResource::find($selected_resources[0]->parent_id);
+            $parent = Resource::find($selected_resources[0]->parent_id);
         } else {
-            $parent = VPResource::find('root');
+            $parent = Resource::find('root');
         }
-        $resources = VPResource::findBySQL(
+        $resources = Resource::findBySQL(
             "parent_id = ? ORDER BY name",
             [$parent ? $parent->id : '0']
         );

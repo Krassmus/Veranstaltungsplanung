@@ -61,9 +61,10 @@ class PlanerController extends PluginController
     {
         $start = strtotime(Request::get("start"));
         $end = strtotime(Request::get("end"));
+        $object_type = Request::get("object_type") ?: "courses";
 
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_DEFAULTDATE', $start + floor(($end - $start) / 2));
-        $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_OBJECT_TYPE', Request::get("object_type"));
+        $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_OBJECT_TYPE', $object_type);
 
         $termine = array();
         $query = new \Veranstaltungsplanung\SQLQuery(
@@ -79,7 +80,7 @@ class PlanerController extends PluginController
         ));
         $query->groupBy("`termine`.`termin_id`");
 
-        switch (Request::get("object_type")) {
+        switch ($object_type) {
             case "courses":
                 $query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
 
@@ -106,21 +107,21 @@ class PlanerController extends PluginController
                 //Zweiter Query für private Termine:
                 break;
             case "resources":
-                $query->join("resources_assign", "`resources_assign`.`assign_user_id` = `termine`.`termin_id`");
-                $query->join("resources_objects", "`resources_assign`.`resource_id` = `resources_objects`.`resource_id`");
+                $query->join("resource_bookings", "`resource_bookings`.`range_id` = `termine`.`termin_id`");
+                $query->join("resources", "`resource_bookings`.`resource_id` = `resources`.`id`");
                 break;
         }
         $this->vpfilters = Veranstaltungsplanung::getFilters();
-        foreach ($this->vpfilters[Request::get("object_type")] as $filter) {
+        foreach ((array) $this->vpfilters[$object_type] as $filter) {
             $filter->applyFilter($query);
         }
 
         foreach ($query->fetchAll("CourseDate") as $termin) {
             $title = $termin->course['name'];
-            if (Request::get("object_type") === "resources") {
-                $title = $termin->room_assignment->resource->getName().": ".$title;
+            if ($object_type === "resources") {
+                $title = $termin->room_booking->resource['name'].": ".$title;
             }
-            if (Request::get("object_type") === "persons") {
+            if ($object_type === "persons") {
                 $dozenten = $termin->dozenten;
                 if (!count($dozenten)) {
                     $dozenten = $termin->course->members->filter(function ($m) { return $m['status'] === "dozent"; });
@@ -139,7 +140,7 @@ class PlanerController extends PluginController
             );
         }
 
-        if (Request::get("object_type") === "persons") {
+        if ($object_type === "persons") {
             $query = new \Veranstaltungsplanung\SQLQuery(
                 "event_data",
                 "private_termine"
@@ -202,7 +203,7 @@ class PlanerController extends PluginController
         };
         if (!count($teacher_ids)) {
             $statement = DBManager::get()->prepare("
-                SELECT user_id 
+                SELECT user_id
                 FROM seminar_user
                 WHERE Seminar_id = ?
                     AND status = 'dozent'
@@ -223,7 +224,7 @@ class PlanerController extends PluginController
                         AND termine.`date` <= :end
                         AND termine.`end_time` >= :start
                         AND (
-                            (termin_related_persons.user_id IN (:teacher_ids)) 
+                            (termin_related_persons.user_id IN (:teacher_ids))
                             OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
                         )
                         AND (
@@ -249,7 +250,7 @@ class PlanerController extends PluginController
                     AND termine.`date` <= :end
                     AND termine.`end_time` >= :start
                     AND (
-                        (termin_related_persons.user_id IN (:teacher_ids)) 
+                        (termin_related_persons.user_id IN (:teacher_ids))
                         OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
                     )
              ");
@@ -307,7 +308,7 @@ class PlanerController extends PluginController
             //coursedate is repeating date and we need to check for all dates
             $statement = DBManager::get()->prepare("
                 SELECT termine.*
-                FROM termine 
+                FROM termine
                     LEFT JOIN termine AS my_termine ON (FLOOR(termine.end_time / 86400 * 7) = FLOOR(my_termine.end_time / 86400 * 7))
                     LEFT JOIN seminar_user ON (seminar_user.Seminar_id = termine.range_id)
                     LEFT JOIN seminar_user AS my_dozent ON (my_dozent.Seminar_id = my_termine.range_id AND my_dozent.status = 'dozent' AND seminar_user.user_id = my_dozent.user_id)
@@ -485,11 +486,11 @@ class PlanerController extends PluginController
                 break;
             case "resources":
                 $query = new \Veranstaltungsplanung\SQLQuery(
-                    "resources_objects",
+                    "resources",
                     "veranstaltungsplanung_resources"
                 );
-                $query->groupBy("`resources_objects`.`resource_id`");
-                $query->orderBy("`resources_objects`.name ASC");
+                $query->groupBy("`resources`.`id`");
+                $query->orderBy("`resources`.name ASC");
 
                 $this->vpfilters = Veranstaltungsplanung::getFilters();
                 foreach ($this->vpfilters[Request::get("object_type")] as $filter) {
@@ -499,13 +500,59 @@ class PlanerController extends PluginController
                 break;
         }
 
-
-        if (Config::get()->RESOURCES_ENABLE) {
-            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
-        }
+        $this->setAvailableRooms(); //Todo: implement this on my own.
         $this->semester = Semester::findByTimestamp($this->start);
         $this->in_semester = $this->semester && ($this->semester['vorles_beginn'] <= $this->start && $this->semester['vorles_ende'] >= $this->end);
         $this->render_template("planer/create_date_".Request::get("object_type"));
+    }
+
+    protected function setAvailableRooms()
+    {
+        if (Config::get()->RESOURCES_ENABLE) {
+            //Check for how many rooms the user has booking permissions.
+            //In case these permissions exist for more than 50 rooms
+            //show a quick search. Otherwise show a select field
+            //with the list of rooms.
+
+            $current_user = User::findCurrent();
+            $current_user_is_resource_admin = ResourceManager::userHasGlobalPermission(
+                $current_user,
+                'admin'
+            );
+            $begin = $this->start;
+            $end = $this->end;
+            $this->selectable_rooms = [];
+            $rooms_with_booking_permissions = 0;
+            if ($current_user_is_resource_admin) {
+                $rooms_with_booking_permissions = Room::countAll();
+            } else {
+                $user_rooms = RoomManager::getUserRooms($current_user);
+                foreach ($user_rooms as $room) {
+                    if ($room->userHasBookingRights($current_user, $begin, $end)) {
+                        $rooms_with_booking_permissions++;
+                        $this->selectable_rooms[] = $room;
+                    }
+                }
+            }
+
+            if ($rooms_with_booking_permissions > 50) {
+                $room_search_type = new RoomSearch();
+                $room_search_type->setAcceptedPermissionLevels(
+                    ['autor', 'tutor', 'admin']
+                );
+                $room_search_type->setAdditionalDisplayProperties(
+                    ['seats']
+                );
+                $this->room_search = new QuickSearch(
+                    'room_id',
+                    $room_search_type
+                );
+            } else {
+                if (ResourceManager::userHasGlobalPermission($current_user, 'admin')) {
+                    $this->selectable_rooms = Room::findAll();
+                }
+            }
+        }
     }
 
     public function get_dozenten_action($seminar_id)
