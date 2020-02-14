@@ -2,7 +2,7 @@
 /*global jQuery, STUDIP */
 STUDIP.StudyareaTree = {
     remove: function () {
-        var id = jQuery(this).closest("li").attr("class");
+        var id = jQuery(this).closest("li").data("id");
         var object_tree = $(this).closest('.object_tree');
         var ids = $(object_tree).find("input.ids").val().split(",");
         ids = _.without(ids, id);
@@ -41,6 +41,7 @@ STUDIP.StudyareaTree = {
             li = $(object_tree).find('.selected > li.template').clone();
         li.hide()
             .removeClass("template")
+            .data("id", id)
             .find("input")
             .val(id);
 
@@ -60,6 +61,7 @@ STUDIP.StudyareaTree = {
     $(document)
         .on('click', '.object_tree .up a', processAreaTree(true))
         .on('click', '.object_tree .children a.navigator', processAreaTree(false))
-        .on('click', '.object_tree .children a.selector', select);
+        .on('click', '.object_tree .children a.selector', select)
+        .on('click', ".object_tree .remove_tree_object", STUDIP.StudyareaTree.remove);
 
 }(jQuery, STUDIP));
