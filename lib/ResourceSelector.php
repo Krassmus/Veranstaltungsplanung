@@ -18,13 +18,15 @@ class ResourceSelector extends SidebarWidget
 
         if (count($selected_resources) === 1) {
             $parent = Resource::find($selected_resources[0]->parent_id);
+            $resources = Resource::findBySQL(
+                "parent_id = ? ORDER BY name",
+                [$parent ? $parent->id : '0']
+            );
         } else {
-            $parent = Resource::find('root');
+            $resources = Location::findAll();
+            $parent = null;
         }
-        $resources = Resource::findBySQL(
-            "parent_id = ? ORDER BY name",
-            [$parent ? $parent->id : '0']
-        );
+
 
         $this->template->resources  = $resources;
         $this->template->parent      = $parent;
