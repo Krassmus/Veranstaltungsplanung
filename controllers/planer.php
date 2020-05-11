@@ -276,29 +276,29 @@ class PlanerController extends PluginController
         }
 
         //check for blocked resource:
-        if ($termin->room_assignment) {
+        if ($termin->room_booking) {
             $statement = DBManager::get()->prepare("
-                SELECT termine.*
-                FROM termine
-                    INNER JOIN resources_assign ON (resources_assign.assign_user_id = termine.termin_id)
-                WHERE resources_assign.resource_id = :resource_id
-                    AND termine.termin_id NOT IN (:termin_ids)
-                    AND termine.`date` <= :end
-                    AND termine.`end_time` >= :start
+                SELECT resource_booking_intervals.*, resource_bookings.range_id as termin_id
+                FROM resource_booking_intervals
+                    INNER JOIN resource_bookings ON (resource_bookings.id = resource_booking_intervals.booking_id)
+                WHERE resource_bookings.resource_id = :resource_id
+                    AND resource_bookings.range_id NOT IN (:termin_ids)
+                    AND resource_booking_intervals.`begin` <= :end
+                    AND resource_booking_intervals.`end` >= :start
             ");
             $statement->execute(array(
                 'termin_ids' => $termin_ids,
                 'start' => $start,
                 'end' => $end,
-                'resource_id' => $termin->room_assignment['resource_id']
+                'resource_id' => $termin->room_booking['resource_id']
             ));
             $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
             foreach ($termine_data as $data) {
                 $termin_ids[] = $data['termin_id'];
                 $events[] = array(
-                    'id' => $data['termin_id'],
-                    'start' => date("c", $data['date']),
-                    'end' => date("c", $data['end_time']),
+                    'id' => $data['interval_id'],
+                    'start' => date("c", $data['begin']),
+                    'end' => date("c", $data['end']),
                     'reason' => _("Raum ist dort schon belegt.")
                 );
             }
