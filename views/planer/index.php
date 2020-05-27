@@ -3,10 +3,12 @@
         STUDIP.Veranstaltungsplanung = {};
     }
     STUDIP.Veranstaltungsplanung.hidden_days = <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ?: "[]" ?>;
+    STUDIP.Veranstaltungsplanung.defaultView = '<?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTVIEW ?: "timeGridWeek" ?>';
 </script>
 
 <div id="calendar"
      data-default_date="<?= date("r", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTDATE ?: time()) ?>"></div>
+
 
 <input type="hidden" class="date_fetch_params" id="object_type" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) ?>">
 <? foreach ($vpfilters as $object_type => $filterset) : ?>
@@ -22,6 +24,14 @@
 <style>
     #calendar tr[data-time="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE ?: "12") ?>:00:00"] > td {
         border-top: 1px solid #d60000;
+    }
+    #calendar .ui-datepicker-trigger {
+        opacity: 0;
+        max-width: 0px;
+        max-height: 0px;
+        margin: 0px;
+        padding: 0px;
+        border: 0px;
     }
 </style>
 

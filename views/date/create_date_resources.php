@@ -1,6 +1,6 @@
 <form class="default"
       method="post"
-      action="<?= PluginEngine::getLink($plugin, array(), "planer/create_date") ?>"
+      action="<?= PluginEngine::getLink($plugin, array(), "date/edit") ?>"
       data-dialog>
 
     <input type="hidden" name="start" value="<?= htmlReady($start) ?>">
@@ -67,6 +67,6 @@
 
 
     <div data-dialog-button>
-        <?= \Studip\Button::create(_("Erstellen")) ?>
+        <?= \Studip\Button::create(_("Speichern")) ?>
     </div>
 </form>

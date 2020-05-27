@@ -168,13 +168,47 @@ jQuery(function () {
     var calendarEl = document.getElementById('calendar');
 
     STUDIP.Veranstaltungsplanung.calendar = new FullCalendar.Calendar(calendarEl, {
-        plugins: [ 'interaction', 'timeGrid' ],
-        defaultView: 'timeGridWeek',
+        plugins: [ 'interaction', 'timeGrid', 'dayGrid' ],
+        defaultView: STUDIP.Veranstaltungsplanung.defaultView, // dayGridMonth timeGridWeek
         allDaySlot: false,
+        customButtons: {
+            datepicker: {
+                text: 'Datum wählen'.toLocaleString(),
+                click: function() {
+                    if ($("#hiddenDate").length === 0) {
+                        var $btnCustom = $('.fc-datepicker-button'); // name of custom button in the generated code
+                        $btnCustom.after('<input type="hidden" id="hiddenDate" class="datepicker">');
+
+                        $("#hiddenDate").css("opacity", 0).datepicker({
+                            showOn: "both",
+                            dateFormat:"yy-mm-dd",
+                            onSelect: function (dateText, inst) {
+                                STUDIP.Veranstaltungsplanung.calendar.gotoDate(dateText);
+                            },
+                        }).datepicker("show");
+                    } else {
+                        $("#hiddenDate").datepicker("show");
+                    }
+                }
+            },
+            viewchanger: {
+                text: 'Ansicht',
+                click: function() {
+                    if (STUDIP.Veranstaltungsplanung.calendar.view.type === "timeGridWeek") {
+                        STUDIP.Veranstaltungsplanung.calendar.changeView("dayGridMonth");
+                    } else {
+                        STUDIP.Veranstaltungsplanung.calendar.changeView("timeGridWeek");
+                    }
+                    jQuery.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/set_default_view'), {
+                        'default_view': STUDIP.Veranstaltungsplanung.calendar.view.type
+                    });
+                }
+            }
+        },
         header: {
             left: '',
-            center: 'prev,next today',
-            right: ''
+            center: 'prev,next datepicker',
+            right: 'viewchanger'
         },
         weekNumbers: true,
         firstDay: 1,
@@ -190,7 +224,7 @@ jQuery(function () {
         timezone: 'local',
         eventClick: function (info) {
             var termin_id = info.event.id;
-            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/info/date/' + termin_id));
+            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit/' + termin_id), {"data": STUDIP.Veranstaltungsplanung.getCurrentParameters()});
         },
         eventResizeStart: STUDIP.Veranstaltungsplanung.changeEventStart,
         eventResizeStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
@@ -203,7 +237,7 @@ jQuery(function () {
             var data = STUDIP.Veranstaltungsplanung.getCurrentParameters();
             data["start"] = arg.start.getTime() / 1000;
             data["end"] = arg.end.getTime() / 1000;
-            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/create_date', data));
+            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit', data));
         },
         editable: true,
         defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : "now",

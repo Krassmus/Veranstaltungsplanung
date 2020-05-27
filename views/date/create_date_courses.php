@@ -1,18 +1,18 @@
 <form class="default"
       method="post"
-      action="<?= PluginEngine::getLink($plugin, array(), "planer/create_date") ?>"
+      action="<?= PluginEngine::getLink($plugin, array(), "date/edit/".$date->getId()) ?>"
       data-dialog>
 
     <input type="hidden" name="object_type" value="<?= htmlReady(Request::get("object_type")) ?>">
-    <input type="hidden" name="start" value="<?= htmlReady($start) ?>">
-    <input type="hidden" name="end" value="<?= htmlReady($end) ?>">
+    <input type="hidden" name="start" value="<?= htmlReady($date['date']) ?>">
+    <input type="hidden" name="end" value="<?= htmlReady($date['end_time']) ?>">
 
     <label>
         <?= _("Veranstaltung auswählen") ?>
             <select name="course_id" required onChange="STUDIP.Veranstaltungsplanung.getDozenten.call(this);">
                 <option value=""> - </option>
                 <? foreach ($courses as $course) : ?>
-                    <option value="<?= htmlReady($course->getId()) ?>">
+                    <option value="<?= htmlReady($course->getId()) ?>"<?= $course->getId() === $date['range_id'] ? " selected" : "" ?>>
                         <?= htmlReady($course->getFullName()) ?>
                     </option>
                 <? endforeach ?>
@@ -21,9 +21,9 @@
 
     <label>
         <?= _("Art") ?>
-        <select name="dateType">
+        <select name="data[date_typ]">
             <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
-                <option <?= Request::get('dateType') == $key ? 'selected' : '' ?>
+                <option <?= $date['date_typ'] == $key ? 'selected' : '' ?>
                         value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>
             <? endforeach ?>
         </select>
@@ -61,7 +61,8 @@
     <label>
         <?= _('Freie Ortsangabe') ?>
         <input type="text"
-               name="freeRoomText"
+               name="data[raum]"
+               value="<?= htmlReady($date['raum']) ?>"
                maxlength="255">
         <? if (Config::get()->RESOURCES_ENABLE) : ?>
             <small style="display: block"><?= _('(führt <em>nicht</em> zu einer Raumbuchung)') ?></small>
@@ -73,6 +74,13 @@
     </div>
 
     <div data-dialog-button>
-        <?= \Studip\Button::create(_("Erstellen")) ?>
+        <?= \Studip\Button::create(_("Speichern")) ?>
+        <? if (!$date->isNew()) : ?>
+            <? if ($date->cycle) : ?>
+                <?= \Studip\Button::create(_("Ausfallen lassen"), "ex_date", ['data-confirm' => _("Wirklich diesen Termin ausfallen lassen?")]) ?>
+            <? endif ?>
+            <?= \Studip\Button::create(_("Löschen"), "delete_date", ['data-confirm' => $date->cycle ? _("Wirklich diesen Termin und alle Wiederholungen löschen?") : _("Wirklich diesen Termin löschen?")]) ?>
+
+        <? endif ?>
     </div>
 </form>
