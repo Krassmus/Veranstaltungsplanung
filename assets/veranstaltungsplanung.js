@@ -148,7 +148,7 @@ jQuery(function () {
         return false;
     });
     jQuery(".change_type").on("change", STUDIP.Veranstaltungsplanung.rearrangeSidebar);
-    jQuery(".sidebar select, .sidebar input").on("change", function () {
+    jQuery(".sidebar select, .sidebar input[name]").on("change", function () {
         var name = jQuery(this).attr("name").replace(/\[\]/, "");
         var val = jQuery(this).val();
         if (typeof val === "object") {
@@ -156,8 +156,10 @@ jQuery(function () {
         }
         jQuery("#" + name).val(val);
         STUDIP.Veranstaltungsplanung.appendFragment();
-        STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
-    });
+        if (typeof STUDIP.Veranstaltungsplanung.calendar !== "undefined") {
+            STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
+        }
+    }).trigger("change");
 
 
 
@@ -206,8 +208,8 @@ jQuery(function () {
             }
         },
         header: {
-            left: '',
-            center: 'prev,next datepicker',
+            left: 'prev next datepicker',
+            center: 'title',
             right: 'viewchanger'
         },
         weekNumbers: true,

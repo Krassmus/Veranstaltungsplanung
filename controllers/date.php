@@ -15,7 +15,18 @@ class DateController extends PluginController
             $this->date['end_time'] = Request::int("end");
         }
         if (count(Request::getArray("data"))) {
-            $this->date->setData(Request::getArray("data"));
+            $data = Request::getArray("data");
+            if ($data['date']) {
+                $data['date'] = strtotime($data['date']);
+            }
+            if ($data['end_time']) {
+                $data['end_time'] = strtotime($data['end_time']);
+            }
+            $this->date->setData($data);
+        }
+
+        if (!$this->date->isNew() && !$GLOBALS['perm']->have_studip_perm("tutor", $this->date['range_id'])) {
+            throw new AccessDeniedException();
         }
 
         if (Request::isPost()) {
@@ -25,22 +36,41 @@ class DateController extends PluginController
                 } else {
                     $this->date->delete();
                 }
+                $this->response->add_header("X-Dialog-Execute", "STUDIP.Veranstaltungsplanung.reloadCalendar");
+                $this->response->add_header("X-Dialog-Close", 1);
+                $this->render_nothing();
+                return;
+            }
+            if (Request::submitted("ex_date")) {
+                if ($this->date->cycle) {
+                    $this->date->cancelDate();
+                } else {
+                    $this->date->delete();
+                }
+                $this->response->add_header("X-Dialog-Execute", "STUDIP.Veranstaltungsplanung.reloadCalendar");
+                $this->response->add_header("X-Dialog-Close", 1);
+                $this->render_nothing();
+                return;
             }
             //Add course date or booking of resource or personal event?
             if (Request::option("metadate")) {
-                $cycledate = new SeminarCycleDate();
-                $cycledate['seminar_id'] = Request::option("course_id");
+                if ($this->date['metadate_id']) {
+                    $cycledate = $this->date->cycle;
+                } else {
+                    $cycledate = new SeminarCycleDate();
+                }
+
+                $cycledate['seminar_id'] = $this->date['range_id'];
                 $cycledate['start_time'] = date("H:i:s", $this->date['date']);
                 $cycledate['end_time'] = date("H:i:s", $this->date['end_time']);
                 $cycledate['weekday'] = date("w", $this->date['date']) > 0 ? date("w", $this->date['date']) : 7;
                 $cycledate['cycle'] = 0;
                 $cycledate->store();
-                $cycledate->generateNewDates();
-                $dozenten = Course::find(Request::option("course_id"))->members->filter(function ($m) { return $m['status'] === "dozent"; });
+                $dozenten = Course::find($this->date['range_id'])->members->filter(function ($m) { return $m['status'] === "dozent"; });
                 foreach ($cycledate->getAllDates() as $date) {
-                    $date['date_typ'] = Request::option("dateType");
+                    $date['date_typ'] = $this->date['date_typ'];
                     if (!Request::option("resource_id")) {
-                        $date['raum'] = Request::get("freeRoomText");
+                        $date['raum'] = $this->date['raum'];
                     }
                     $date->store();
                     if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
@@ -57,31 +87,42 @@ class DateController extends PluginController
                         }
                     }
                     if (Request::option("resource_id")) {
-                        //Raumbuchung
-                        $assignment = new ResourceAssignment();
-                        $assignment['resource_id'] = Request::option("resource_id");
-                        $assignment['assign_user_id'] = $date->getId();
-                        $assignment['begin'] = $this->date['date'];
-                        $assignment['end'] = $this->date['end_time'];
-                        $assignment['repeat_end'] = $this->date['end_time'];
-                        $assignment['repeat_quantity'] = 0;
-                        $assignment['repeat_interval'] = 0;
-                        $assignment['repeat_month_of_year'] = 0;
-                        $assignment['repeat_day_of_month'] = 0;
-                        $assignment['repeat_week_of_month'] = 0;
-                        $assignment['repeat_day_of_week'] = 0;
-                        $assignment->store();
+                        $booking = $date->room_booking;
+                        if (!$booking) {
+                            $booking = new ResourceBooking();
+                            $booking['range_id'] = $date->getId();
+                        }
+                        $booking['resource_id'] = Request::option("resource_id");
+                        $booking['begin'] = $date['date'];
+                        $booking['end'] = $date['end_time'];
+                        $booking['repeat_end'] = $date['end_time'];
+                        $booking['repeat_quantity'] = 0;
+                        $booking['repetition_interval'] = 0;
+                        $booking['booking_user_id'] = $GLOBALS['user']->id;
+                        $booking['booking_type'] = 0;
+                        $booking['preparation_time'] = 0;
+                        $booking->store();
+                    } elseif ($date->room_booking) {
+                        $date->room_booking->delete();
                     }
                 }
             } else {
-                $this->date = new CourseDate();
-                $this->date['range_id'] = Request::option("course_id");
+                //Unregelmäßiger Termin
+                if (!$this->date->isNew() && $this->date['metadate_id']) {
+                    //Regelmäßigen Termin löschen:
+                    $data = $this->date->toRawArray();
+                    $this->date->cycle->delete();
+                    unset($data['metadate_id']);
+                    $this->date = new CourseDate();
+                    $this->date->setData($data);
+                }
                 $this->date['autor_id'] = $GLOBALS['user']->id;
-                if (!Request::option("resource_id")) {
-                    $this->date['raum'] = Request::get("freeRoomText");
+                if (Request::option("resource_id")) {
+                    $this->date['raum'] = null;
                 }
                 $this->date->store();
-                $dozenten = Course::find(Request::option("course_id"))->members->filter(function ($m) { return $m['status'] === "dozent"; });
+
+                $dozenten = $this->date->course->members->filter(function ($m) { return $m['status'] === "dozent"; });
                 if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
                     $statement = DBManager::get()->prepare("
                         INSERT IGNORE INTO termin_related_persons
@@ -91,25 +132,28 @@ class DateController extends PluginController
                     foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
                         $statement->execute(array(
                             'user_id' => $user_id,
-                            'termin_id' => $date->getId()
+                            'termin_id' => $this->date->getId()
                         ));
                     }
                 }
                 if (Request::option("resource_id")) {
-                    //Raumbuchung
-                    $assignment = new ResourceAssignment();
-                    $assignment['resource_id'] = Request::option("resource_id");
-                    $assignment['assign_user_id'] = $date->getId();
-                    $assignment['begin'] = $this->date['date'];
-                    $assignment['end'] = $this->date['end_time'];
-                    $assignment['repeat_end'] = $this->date['end_time'];
-                    $assignment['repeat_quantity'] = 0;
-                    $assignment['repeat_interval'] = 0;
-                    $assignment['repeat_month_of_year'] = 0;
-                    $assignment['repeat_day_of_month'] = 0;
-                    $assignment['repeat_week_of_month'] = 0;
-                    $assignment['repeat_day_of_week'] = 0;
-                    $assignment->store();
+                    $booking = $this->date->room_booking;
+                    if (!$booking) {
+                        $booking = new ResourceBooking();
+                        $booking['range_id'] = $this->date->getId();
+                    }
+                    $booking['resource_id'] = Request::option("resource_id");
+                    $booking['begin'] = $this->date['date'];
+                    $booking['end'] = $this->date['end_time'];
+                    $booking['repeat_end'] = $this->date['end_time'];
+                    $booking['repeat_quantity'] = 0;
+                    $booking['repetition_interval'] = 0;
+                    $booking['booking_user_id'] = $GLOBALS['user']->id;
+                    $booking['booking_type'] = 0;
+                    $booking['preparation_time'] = 0;
+                    $booking->store();
+                } elseif ($this->date->room_booking) {
+                    $this->date->room_booking->delete();
                 }
 
             }
@@ -120,8 +164,11 @@ class DateController extends PluginController
             return;
         }
 
-        PageLayout::setTitle(sprintf(_("Termin erstellen %s - %s"), date("d.m.Y H:i", $this->start), date((floor($this->start / 86400) == floor($this->end / 86400) ? "H:i" : "d.m.Y H:i "), $this->end)));
-
+        if ($this->date->isNew()) {
+            PageLayout::setTitle(sprintf(_("Termin erstellen %s - %s"), date("d.m.Y H:i", $this->date['date']), date((floor($this->date['date'] / 86400) == floor($this->date['end_time'] / 86400) ? "H:i" : "d.m.Y H:i "), $this->date['end_time'])));
+        } else {
+            PageLayout::setTitle(sprintf(_("Termin bearbeiten %s - %s"), date("d.m.Y H:i", $this->date['date']), date((floor($this->date['date'] / 86400) == floor($this->date['end_time'] / 86400) ? "H:i" : "d.m.Y H:i "), $this->date['end_time'])));
+        }
         switch (Request::get("object_type")) {
             case "courses":
                 $query = new \Veranstaltungsplanung\SQLQuery(

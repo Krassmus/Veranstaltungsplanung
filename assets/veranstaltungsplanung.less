@@ -11,6 +11,7 @@
         background-color: white;
         color: @origin-base-color;
         border-color: @origin-base-color;
+        margin-top: 0px;
 
         &:hover {
             background-color: @origin-base-color;
@@ -29,6 +30,13 @@
     }
     .fc-scroller.fc-time-grid-container {
         height: 75vh !important;
+    }
+    .fc-center {
+        h2 {
+            text-decoration: none;
+            font-size: 1.4em;
+            border: none;
+        }
     }
 }
 
@@ -62,4 +70,16 @@
         font-size: 1.1em;
         font-weight: 700;
     }
+}
+
+.vplaner_edit_date {
+    .planer_course_link {
+        display: none;
+        top: 10px;
+        position: relative;
+        &[href*=cid] {
+            display: inline-block;
+        }
+    }
+
 }
