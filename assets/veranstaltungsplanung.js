@@ -55,7 +55,7 @@ STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
 
     //AJAX to change; if there is a collision open a dialog and ask what to do
     jQuery.ajax({
-        "url": STUDIP.URLHelper.getURL("plugins.php/veranstaltungsplanung/planer/change_event"),
+        "url": STUDIP.URLHelper.getURL("plugins.php/veranstaltungsplanung/date/change_event"),
         "data": {
             "termin_id": info.event.id,
             "start": start,
