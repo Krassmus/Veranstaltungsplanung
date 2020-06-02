@@ -38,15 +38,25 @@ class PlanerController extends PluginController
     public function change_event_action()
     {
         list($type, $termin_id) = explode("_", Request::option("termin_id"), 2);
-        $termin = CourseDate::find($termin_id);
+        $this->date = CourseDate::find($termin_id);
         $start = (int) (Request::get("start"));
         $end = (int) (Request::get("end"));
         $output = array();
         $output['type'] = $type;
-        if ($type === "termine" && $GLOBALS['perm']->have_studip_perm("dozent", $termin['range_id'])) {
-            $termin['date'] = $start;
-            $termin['end_time'] = $end;
-            $termin->store();
+        if ($type === "termine" && $GLOBALS['perm']->have_studip_perm("dozent", $this->date['range_id'])) {
+            if ($this->date['metadate_id']) {
+                $cycledate = $this->date->cycle;
+                $cycledate['seminar_id'] = $this->date['range_id'];
+                $cycledate['start_time'] = date("H:i:s", $start);
+                $cycledate['end_time'] = date("H:i:s", $end);
+                $cycledate['weekday'] = date("w", $start) > 0 ? date("w", $start) : 7;
+                $cycledate['cycle'] = 0;
+                $cycledate->store();
+            } else {
+                $this->date['date'] = $start;
+                $this->date['end_time'] = $end;
+                $this->date->store();
+            }
             $output['test'] = 1;
         } else {
             $output['rejected'] = 1;
