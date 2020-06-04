@@ -1,5 +1,6 @@
 pluginname=Veranstaltungsplanung
 pluginclassname=Veranstaltungsplanung
-version=1.0
+version=0.9
 origin=data-quest
 studipMinVersion=4.0
+studipMaxVersion=4.4.90
