@@ -4,11 +4,12 @@ STUDIP.StudyareaTree = {
     remove: function () {
         var id = jQuery(this).closest("li").data("id");
         var object_tree = $(this).closest('.object_tree');
+        jQuery(this).closest('li').remove();
         var ids = $(object_tree).find("input.ids").val().split(",");
         ids = _.without(ids, id);
         $(object_tree).find("input.ids").val(ids.join(","));
         $(object_tree).find("input.ids").trigger("change");
-        jQuery(this).closest('li').remove();
+
     }
 };
 

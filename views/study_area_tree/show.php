@@ -53,7 +53,7 @@
         <span class="name"></span>
     </li>
     <? foreach ($selected as $study_area) : ?>
-        <li class="<?= $study_area->id ?>">
+        <li class="<?= $study_area->id ?>" data-id="<?= $study_area->id ?>">
             <div style="float: right; cursor: pointer;">
                 <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen"))) ?>
             </div>

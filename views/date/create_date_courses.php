@@ -57,11 +57,13 @@
         </select>
     </label>
 
-    <? if ($in_semester) : ?>
+    <? if ($in_semester && !Config::get()->VPLANER_DISABLE_METADATES) : ?>
         <label>
             <input type="checkbox" name="metadate" value="1"<?= $date['metadate_id'] ? " checked" : "" ?>>
             <?= _("Regelmäßiger Termin") ?>
         </label>
+    <? elseif (!Config::get()->VPLANER_DISABLE_METADATES) : ?>
+        <input type="hidden" name="metadate" value="<?= $date['metadate_id'] ? 1 : 0 ?>">
     <? endif ?>
 
     <? if (Config::get()->RESOURCES_ENABLE
