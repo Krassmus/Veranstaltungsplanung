@@ -119,7 +119,10 @@ class PlanerController extends PluginController
                 'title' => $title,
                 'start' => date("c", $termin['date']),
                 'end' => date("c", $termin['end_time']),
-                'classNames' => array("course_".$termin['range_id'])
+                'classNames' => array(
+                    "course_".$termin['range_id'],
+                    $termin['metadate_id'] ? "dateseries" : "singledate"
+                )
             );
         }
 
