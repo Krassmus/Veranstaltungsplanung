@@ -100,7 +100,7 @@ class PlanerController extends PluginController
         }
 
         foreach ($query->fetchAll("CourseDate") as $termin) {
-            $title = $termin->course['name'];
+            $title = (string) $termin->course['name'];
             if ($object_type === "resources") {
                 $title = $termin->room_booking->resource['name'].": ".$title;
             }
