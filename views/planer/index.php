@@ -4,6 +4,11 @@
     }
     STUDIP.Veranstaltungsplanung.hidden_days = <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ?: "[]" ?>;
     STUDIP.Veranstaltungsplanung.defaultView = '<?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTVIEW ?: "timeGridWeek" ?>';
+    <? if ($print) : ?>
+    window.setTimeout(function () {
+        window.print();
+    }, 1000);
+    <? endif ?>
 </script>
 
 <div id="calendar"
@@ -79,5 +84,11 @@ $actions->addLink(
     PluginEngine::getURL($plugin, array(), "planer/settings"),
     Icon::create("admin", "clickable"),
     array('data-dialog' => 1)
+);
+$actions->addLink(
+    _("Drucken"),
+    PluginEngine::getURL($plugin, array(), "planer/print"),
+    Icon::create("print", "clickable"),
+    array('target' => "_blank")
 );
 Sidebar::Get()->addWidget($actions);

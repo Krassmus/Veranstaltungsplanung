@@ -35,6 +35,17 @@ class PlanerController extends PluginController
         $this->vpfilters = Veranstaltungsplanung::getFilters();
     }
 
+    public function print_action()
+    {
+        $this->index_action();
+        $tf = new Flexi_TemplateFactory(__DIR__."/../views");
+        $layout = $tf->open("layouts/kiosk");
+        //$this->set_layout($tf->open("layouts/kiosk"));
+        $this->print = true;
+        PageLayout::addStylesheet($this->plugin->getPluginURL()."/assets/print.css");
+        $this->render_template("planer/index", $layout);
+    }
+
     public function change_type_action()
     {
         $this->redirect("planer/index");
