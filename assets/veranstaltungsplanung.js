@@ -259,8 +259,8 @@ jQuery(function () {
             },
             success: function (events) {
                 if ($('#print').val()) {
-                    let mintime = 86400;
-                    let maxtime = 0;
+                    let mintime = 8 * 60 * 60;
+                    let maxtime = 16 * 60 * 60;
                     let start = null;
                     let end = null;
                     for (let event of events) {
