@@ -40,6 +40,10 @@
     }
 </style>
 
+<? if ($print) : ?>
+    <input type="hidden" id="print" value="1">
+<? endif ?>
+
 <?
 
 $select = new SelectWidget(

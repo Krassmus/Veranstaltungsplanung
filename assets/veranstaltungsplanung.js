@@ -218,8 +218,8 @@ jQuery(function () {
         height: '80vh',
         snapDuration: '00:05:00',
         weekends: true,
-        minTime: '00:00:00',
-        maxTime: '24:00:00',
+        minTime: $("#mintime").val() || '00:00:00',
+        maxTime: $("#maxtime").val() || '24:00:00',
         scrollTime: '07:30:00',
         selectable: true,
         selectMirror: true,
@@ -256,6 +256,43 @@ jQuery(function () {
             },
             failure: function() {
                 alert('there was an error while fetching events!');
+            },
+            success: function (events) {
+                if ($('#print').val()) {
+                    let mintime = 86400;
+                    let maxtime = 0;
+                    let start = null;
+                    let end = null;
+                    for (let event of events) {
+                        start = new Date(event.start);
+                        mintime = Math.min(mintime, start.getSeconds() + 60 * start.getMinutes() + 60 * 60 * start.getHours());
+                        end = new Date(event.end);
+                        maxtime = Math.max(maxtime, end.getSeconds() + 60 * end.getMinutes() + 60 * 60 * end.getHours());
+                    }
+
+                    mintime = (Math.floor(mintime / 3600) < 10 ? "0" : "")
+                        + Math.floor(mintime / 3600)
+                        + ":"
+                        + (Math.floor((mintime / 60) % 60) < 10 ? "0" : "")
+                        + Math.floor((mintime / 60) % 60)
+                        + ":"
+                        + (mintime % 3600 < 10 ? "0" : "")
+                        + mintime % 3600;
+                    maxtime = (Math.floor(maxtime / 3600) < 10 ? "0" : "")
+                        + Math.floor(maxtime / 3600)
+                        + ":"
+                        + (Math.floor((maxtime / 60) % 60) < 10 ? "0" : "")
+                        + Math.floor((maxtime / 60) % 60)
+                        + ":"
+                        + (maxtime % 3600 < 10 ? "0" : "")
+                        + maxtime % 3600;
+                    if (mintime != STUDIP.Veranstaltungsplanung.calendar.getOption('minTime')) {
+                        STUDIP.Veranstaltungsplanung.calendar.setOption('minTime', mintime);
+                    }
+                    if (maxtime != STUDIP.Veranstaltungsplanung.calendar.getOption('maxTime')) {
+                        STUDIP.Veranstaltungsplanung.calendar.setOption('maxTime', maxtime);
+                    }
+                }
             },
             textColor: 'black' // a non-ajax option
         }
