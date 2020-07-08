@@ -4,3 +4,7 @@ body {
 .fc-left, .fc-right {
     visibility: hidden;
 }
+
+.secondary-navigation, #barBottomContainer, #layout_wrapper #flex-header, #layout-sidebar, #layout_footer {
+    display: none;
+}
