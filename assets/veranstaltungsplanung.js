@@ -63,6 +63,14 @@ STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
         },
         "dataType": "json",
         "success": function (output) {
+            if (output.alert) {
+                if (typeof STUDIP.Report !== "undefined") {
+                    STUDIP.Report.info("Hinweis".toLocaleString(), output.alert);
+                } else {
+                    window.alert(output.alert);
+                }
+                STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
+            }
             if (output.rejected) {
                 info.revert();
             }

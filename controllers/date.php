@@ -87,21 +87,10 @@ class DateController extends PluginController
                         }
                     }
                     if (Request::option("resource_id")) {
-                        $booking = $date->room_booking;
-                        if (!$booking) {
-                            $booking = new ResourceBooking();
-                            $booking['range_id'] = $date->getId();
-                        }
-                        $booking['resource_id'] = Request::option("resource_id");
-                        $booking['begin'] = $date['date'];
-                        $booking['end'] = $date['end_time'];
-                        $booking['repeat_end'] = $date['end_time'];
-                        $booking['repeat_quantity'] = 0;
-                        $booking['repetition_interval'] = 0;
-                        $booking['booking_user_id'] = $GLOBALS['user']->id;
-                        $booking['booking_type'] = 0;
-                        $booking['preparation_time'] = 0;
-                        $booking->store();
+                        $singledate = new SingleDate($date);
+                        $singledate->bookRoom(
+                            Request::option("resource_id")
+                        );
                     } elseif ($date->room_booking) {
                         $date->room_booking->delete();
                     }
@@ -137,21 +126,10 @@ class DateController extends PluginController
                     }
                 }
                 if (Request::option("resource_id")) {
-                    $booking = $this->date->room_booking;
-                    if (!$booking) {
-                        $booking = new ResourceBooking();
-                        $booking['range_id'] = $this->date->getId();
-                    }
-                    $booking['resource_id'] = Request::option("resource_id");
-                    $booking['begin'] = $this->date['date'];
-                    $booking['end'] = $this->date['end_time'];
-                    $booking['repeat_end'] = $this->date['end_time'];
-                    $booking['repeat_quantity'] = 0;
-                    $booking['repetition_interval'] = 0;
-                    $booking['booking_user_id'] = $GLOBALS['user']->id;
-                    $booking['booking_type'] = 0;
-                    $booking['preparation_time'] = 0;
-                    $booking->store();
+                    $singledate = new SingleDate($this->date);
+                    $singledate->bookRoom(
+                        Request::option("resource_id")
+                    );
                 } elseif ($this->date->room_booking) {
                     $this->date->room_booking->delete();
                 }
@@ -286,10 +264,29 @@ class DateController extends PluginController
                 $cycledate['weekday'] = date("w", $start) > 0 ? date("w", $start) : 7;
                 $cycledate['cycle'] = 0;
                 $cycledate->store();
+                if ($start < time()) {
+                    $output['alert'] = _("Bei Änderungen von regelmäßigen Terminen werden nur zukünftige Termine verändert.");
+                }
             } else {
                 $this->date['date'] = $start;
                 $this->date['end_time'] = $end;
                 $this->date->store();
+                if ($this->date->room_booking) {
+                    $this->date->room_booking['begin'] = $start;
+                    $this->date->room_booking['end'] = $end;
+                    if ($this->date->room_booking['end'] > $this->date->room_booking['repeat_end']) {
+                        $this->date->room_booking['repeat_end'] = $end;
+                    }
+                    try {
+                        $this->date->room_booking->store();
+                    } catch (ResourceBookingOverlapException $e) {
+                        $this->date->room_booking->delete();
+                        $output['alert'] = _("Die Raumbuchung wurde gelöst, weil es zu Überlappungen mit anderen Buchungen kam.");
+                    } catch(Exception $e) {
+                        $this->date->room_booking->delete();
+                        $output['alert'] = _("Fehler (die Raumbuchung wurde aufgelöst): ").$e->getMessage();
+                    }
+                }
             }
             $output['test'] = 1;
         } else {
