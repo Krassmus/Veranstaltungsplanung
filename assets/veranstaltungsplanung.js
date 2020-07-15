@@ -232,9 +232,17 @@ jQuery(function () {
         selectable: true,
         selectMirror: true,
         timezone: 'local',
+        eventRender: function(info) {
+            $(info.el).attr("title", info.event._def.title);
+        },
         eventClick: function (info) {
             var termin_id = info.event.id;
-            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit/' + termin_id), {"data": STUDIP.Veranstaltungsplanung.getCurrentParameters()});
+            STUDIP.Dialog.fromURL(
+                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit/' + termin_id),
+                {
+                    "data": STUDIP.Veranstaltungsplanung.getCurrentParameters()
+                }
+            );
         },
         eventResizeStart: STUDIP.Veranstaltungsplanung.changeEventStart,
         eventResizeStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
@@ -247,7 +255,9 @@ jQuery(function () {
             var data = STUDIP.Veranstaltungsplanung.getCurrentParameters();
             data["start"] = arg.start.getTime() / 1000;
             data["end"] = arg.end.getTime() / 1000;
-            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit', data));
+            STUDIP.Dialog.fromURL(
+                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit', data)
+            );
         },
         editable: true,
         defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : "now",
@@ -255,18 +265,13 @@ jQuery(function () {
         events: {
             url: STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/fetch_dates'),
             method: 'POST',
-            extraParams: function() {
-                var obj = {};
-                jQuery(".date_fetch_params").each(function () {
-                    obj[jQuery(this).attr("id")] = jQuery(this).val();
-                });
-                return obj;
-            },
+            extraParams: STUDIP.Veranstaltungsplanung.getCurrentParameters,
             failure: function() {
                 alert('there was an error while fetching events!');
             },
             success: function (events) {
                 if ($('#print').val()) {
+                    //calculate minTime and maxTime depending on the displayed events:
                     let mintime = 8 * 60 * 60;
                     let maxtime = 16 * 60 * 60;
                     let start = null;

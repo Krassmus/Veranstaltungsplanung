@@ -59,7 +59,9 @@ interface VPFilter
     public function getParameterName();
 
     /**
-     * Method executed to change the SQLQuery-object.
+     * Method executed to change the SQLQuery-object. The parameter above will be in
+     * the Request. Usually the filter stores this parameter in a userconfig
+     * and then uses it to add contraints to $query.
      * @param \Veranstaltungsplanung\SQLQuery $query
      * @return void
      */

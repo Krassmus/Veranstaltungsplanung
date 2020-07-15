@@ -2,7 +2,8 @@
 
 class VPCourseInstituteFilter implements VPFilter
 {
-    static public function context() {
+    static public function context()
+    {
         return "courses";
     }
 
