@@ -123,6 +123,7 @@ STUDIP.Veranstaltungsplanung.getCurrentParameters = function () {
             params[jQuery(this).attr("id")] = jQuery(this).val();
         }
     });
+    console.log(params);
     return params;
 };
 

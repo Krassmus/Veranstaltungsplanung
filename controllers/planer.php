@@ -2,6 +2,7 @@
 
 require_once __DIR__."/../lib/StudyAreaSelector.php";
 require_once __DIR__."/../lib/ResourceSelector.php";
+require_once __DIR__."/../lib/SeatSelector.php";
 
 class PlanerController extends PluginController
 {
@@ -13,6 +14,9 @@ class PlanerController extends PluginController
         parent::before_filter($action, $args);
         if (!$GLOBALS['perm']->have_perm("admin")) {
             throw new AccessDeniedException();
+        }
+        if (method_exists("PageLayout", "allowFullscreenMode")) {
+            PageLayout::allowFullscreenMode();
         }
     }
 

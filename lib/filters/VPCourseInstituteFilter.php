@@ -52,7 +52,7 @@ class VPCourseInstituteFilter implements VPFilter
 
     public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
     {
-        $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id"));
+        $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id") ?: "all");
         if (Request::get("institut_id") && Request::get("institut_id") !== "all") {
             $query->join("Institute", "`Institute`.`Institut_id` = `seminare`.`Institut_id`");
             $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", array(
