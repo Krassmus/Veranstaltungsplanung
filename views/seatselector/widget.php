@@ -21,11 +21,11 @@
                step="5"
                value="<?= htmlReady($max_seats ?: 0) ?>"
                onchange="$(this).closest('form').find('[name=seats]').val($(this).closest('form').find('.min input').val() + this.value > 0 ? $(this).closest('form').find('.min input').val() + ',' + this.value : ''); $(this).closest('form').find('[name=seats]').trigger('change');"
-               oninput="$(this).closest('label').find('.seats').text(this.value);">
-        <span class="seats"><?= htmlReady($max_seats ?: 0) ?></span>
+               oninput="$(this).closest('label').find('.seats').text(this.value > 0 ? this.value : '0̸');">
+        <span class="seats"><?= htmlReady($max_seats ?: "0̸") ?></span>
     </label>
 
-    <a href="#" onclick="$(this).closest('form').find('input').val('0'); $(this).closest('form').find('input').trigger('change'); $(this).closest('form').find('.seats').text(0); return false;">
+    <a href="#" onclick="$(this).closest('form').find('input').val('0'); $(this).closest('form').find('input').trigger('change'); $(this).closest('form').find('.min .seats').text(0); $(this).closest('form').find('.max .seats').text('0̸'); return false;">
         <?= _("Filter zurücksetzen") ?>
     </a>
 </form>
