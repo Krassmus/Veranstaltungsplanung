@@ -51,7 +51,6 @@ STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
     var revert = info.revert;
     var start = parseInt(info.event.start.getTime() / 1000, 10).toFixed(0);
     var end = parseInt(info.event.end.getTime() / 1000, 10).toFixed(0);
-    //console.log(info.event.end);
 
     //AJAX to change; if there is a collision open a dialog and ask what to do
     jQuery.ajax({
@@ -123,7 +122,6 @@ STUDIP.Veranstaltungsplanung.getCurrentParameters = function () {
             params[jQuery(this).attr("id")] = jQuery(this).val();
         }
     });
-    console.log(params);
     return params;
 };
 
@@ -160,7 +158,7 @@ jQuery(function () {
     jQuery(".sidebar select, .sidebar input[name]").on("change", function () {
         var name = jQuery(this).attr("name").replace(/\[\]/, "");
         var val = jQuery(this).val();
-        if (typeof val === "object") {
+        if (val && typeof val === "object") {
             val = JSON.stringify(val.filter(i => !!i));
         }
         jQuery("#" + name).val(val);

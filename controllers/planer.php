@@ -35,6 +35,7 @@ class PlanerController extends PluginController
         PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/daygrid/main.css");
 
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/mvvfilters.js");
 
         $this->vpfilters = Veranstaltungsplanung::getFilters();
     }
