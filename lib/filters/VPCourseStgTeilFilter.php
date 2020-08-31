@@ -37,7 +37,7 @@ class VPCourseStgTeilFilter implements VPFilter
             "stgteil_id"
         );
         $stgteilwidget->addLayoutCSSClass("courses");
-        $stgteilwidget->addLayoutCSSClass("mvvfilters");
+        $stgteilwidget->addLayoutCSSClass("stgteilfilter");
         $stgteile = [];
         if ($GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT && $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT !== "all") {
             $stgteilwidget->addElement(
