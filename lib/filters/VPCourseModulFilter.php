@@ -66,7 +66,7 @@ class VPCourseModulFilter implements VPFilter
             $modulwidget->addElement(
                 new SelectElement(
                     "",
-                    _("Wählen Sie erst einen Studiengangteil aus"),
+                    _("Wählen Sie erst einen Studiengangteil aus."),
                     false
                 ),
                 'select-'
@@ -91,9 +91,10 @@ class VPCourseModulFilter implements VPFilter
         if (Request::get("modul_id")) {
             $query->join("mvv_lvgruppe_seminar", "`mvv_lvgruppe_seminar`.`seminar_id` = `seminare`.`Seminar_id`");
             $query->join("mvv_lvgruppe_modulteil", "`mvv_lvgruppe_modulteil`.`lvgruppe_id` = `mvv_lvgruppe_seminar`.`lvgruppe_id`");
+            $query->join("mvv_modulteil", "`mvv_modulteil`.`modulteil_id` = `mvv_lvgruppe_modulteil`.`modulteil_id`");
 
-            $query->where("modulteil_id", "`mvv_lvgruppe_modulteil`.`modulteil_id` = :modulteil_id", array(
-                'modulteil_id' => Request::get("modulteil_id")
+            $query->where("modul_id", "`mvv_modulteil`.`modul_id` = :modul_id", array(
+                'modul_id' => Request::get("modul_id")
             ));
         }
     }
