@@ -1,6 +1,6 @@
 <?php
 
-class VPCourseModulteilFilter implements VPFilter
+class VPCourseModulFilter implements VPFilter
 {
     static public function context()
     {
@@ -13,7 +13,7 @@ class VPCourseModulteilFilter implements VPFilter
      */
     public function getName()
     {
-        return _("MVV Modulteile");
+        return _("MVV Module");
     }
 
     /**
@@ -22,7 +22,7 @@ class VPCourseModulteilFilter implements VPFilter
      */
     public function getParameterName()
     {
-        return "modulteil_id";
+        return "modul_id";
     }
 
     /**
@@ -31,16 +31,16 @@ class VPCourseModulteilFilter implements VPFilter
      */
     public function getSidebarWidget()
     {
-        $modulteilwidget = new SelectWidget(
-            _("Modulteile"),
-            PluginEngine::getURL("veranstaltungsplanung/planer/change_studiengangteil"),
-            "stgteil_id"
+        $modulwidget = new SelectWidget(
+            _("Module"),
+            PluginEngine::getURL("veranstaltungsplanung/planer/change_modul"),
+            "modul_id"
         );
-        $modulteilwidget->addLayoutCSSClass("courses");
-        $modulteilwidget->addLayoutCSSClass("modulteilfilter");
-        $modulteile = [];
+        $modulwidget->addLayoutCSSClass("courses");
+        $modulwidget->addLayoutCSSClass("modulfilter");
+        $module = [];
         if ($GLOBALS['user']->cfg->ADMIN_COURSES_STGTEIL) {
-            $modulteilwidget->addElement(
+            $modulwidget->addElement(
                 new SelectElement(
                     "",
                     _("Alle"),
@@ -49,10 +49,10 @@ class VPCourseModulteilFilter implements VPFilter
                 'select-'
             );
             $statement = DBManager::get()->prepare("
-                SELECT mvv_modulteil.*
-                FROM mvv_modulteil
-                    INNER JOIN mvv_modulteil_stgteilabschnitt ON (mvv_modulteil_stgteilabschnitt.modulteil_id = mvv_modulteil.modulteil_id)
-                    INNER JOIN mvv_stgteilabschnitt ON (mvv_stgteilabschnitt.abschnitt_id = mvv_modulteil_stgteilabschnitt.abschnitt_id)
+                SELECT mvv_modul.*
+                FROM mvv_modul
+                    INNER JOIN mvv_stgteilabschnitt_modul ON (mvv_stgteilabschnitt_modul.modul_id = mvv_modul.modul_id)
+                    INNER JOIN mvv_stgteilabschnitt ON (mvv_stgteilabschnitt.abschnitt_id = mvv_stgteilabschnitt_modul.abschnitt_id)
                     INNER JOIN mvv_stgteilversion ON (mvv_stgteilversion.version_id = mvv_stgteilabschnitt.version_id)
                 WHERE mvv_stgteilversion.stgteil_id = :stgteil_id
             ");
@@ -60,35 +60,35 @@ class VPCourseModulteilFilter implements VPFilter
                 'stgteil_id' => Request::option("stgteil_id", $GLOBALS['user']->cfg->ADMIN_COURSES_STGTEIL)
             ]);
             foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $data) {
-                $modulteile[] = Modulteil::buildExisting($data);
+                $module[] = Modul::buildExisting($data);
             }
         } else {
-            $modulteilwidget->addElement(
+            $modulwidget->addElement(
                 new SelectElement(
                     "",
-                    _("Wählen Sie erst eine Einrichtung und Studiengangteil aus"),
+                    _("Wählen Sie erst einen Studiengangteil aus"),
                     false
                 ),
                 'select-'
             );
         }
-        foreach ($modulteile as $modulteil) {
-            $modulteilwidget->addElement(
+        foreach ($module as $modul) {
+            $modulwidget->addElement(
                 new SelectElement(
-                    $modulteil->getId(),
-                    $modulteil->getDisplayName(),
-                    $modulteil->getId() === $GLOBALS['user']->cfg->ADMIN_COURSES_MODULTEIL
+                    $modul->getId(),
+                    $modul->getDisplayName(),
+                    $modul->getId() === $GLOBALS['user']->cfg->ADMIN_COURSES_MODUL
                 ),
-                'select-'.$modulteil->getId()
+                'select-'.$modul->getId()
             );
         }
-        return $modulteilwidget;
+        return $modulwidget;
     }
 
     public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
     {
-        $GLOBALS['user']->cfg->store('ADMIN_COURSES_MODULTEIL', Request::get("modulteil_id"));
-        if (Request::get("modulteil_id")) {
+        $GLOBALS['user']->cfg->store('ADMIN_COURSES_MODUL', Request::get("modul_id"));
+        if (Request::get("modul_id")) {
             $query->join("mvv_lvgruppe_seminar", "`mvv_lvgruppe_seminar`.`seminar_id` = `seminare`.`Seminar_id`");
             $query->join("mvv_lvgruppe_modulteil", "`mvv_lvgruppe_modulteil`.`lvgruppe_id` = `mvv_lvgruppe_seminar`.`lvgruppe_id`");
 

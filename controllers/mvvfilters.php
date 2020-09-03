@@ -13,9 +13,9 @@ class MvvfiltersController extends PluginController
         }
     }
 
-    public function get_mvv_modulteil_action()
+    public function get_mvv_modul_action()
     {
-        $filter = new VPCourseModulteilFilter();
+        $filter = new VPCourseModulFilter();
         $widget = $filter->getSidebarWidget();
         if ($widget) {
             $this->render_text($widget->render());

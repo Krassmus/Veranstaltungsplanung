@@ -8,7 +8,7 @@ require_once __DIR__."/lib/filters/VPSemesterFilter.php";
 require_once __DIR__."/lib/filters/VPCourseInstituteFilter.php";
 require_once __DIR__."/lib/filters/VPCourseStudyareaFilter.php";
 require_once __DIR__."/lib/filters/VPCourseStgTeilFilter.php";
-require_once __DIR__."/lib/filters/VPCourseModulteilFilter.php";
+require_once __DIR__."/lib/filters/VPCourseModulFilter.php";
 require_once __DIR__."/lib/filters/VPCourseVisibilityFilter.php";
 
 require_once __DIR__."/lib/filters/VPUserInstituteFilter.php";
