@@ -92,8 +92,9 @@ class VPCourseModulFilter implements VPFilter
             $query->join("mvv_lvgruppe_seminar", "`mvv_lvgruppe_seminar`.`seminar_id` = `seminare`.`Seminar_id`");
             $query->join("mvv_lvgruppe_modulteil", "`mvv_lvgruppe_modulteil`.`lvgruppe_id` = `mvv_lvgruppe_seminar`.`lvgruppe_id`");
             $query->join("mvv_modulteil", "`mvv_modulteil`.`modulteil_id` = `mvv_lvgruppe_modulteil`.`modulteil_id`");
+            $query->join("mvv_modul", "`mvv_modul`.`modul_id` = `mvv_modulteil`.`modul_id`");
 
-            $query->where("modul_id", "`mvv_modulteil`.`modul_id` = :modul_id", array(
+            $query->where("modul_id", "(`mvv_modul`.`modul_id` = :modul_id) AND (`mvv_modul`.`stat` = 'genehmigt') ", array(
                 'modul_id' => Request::get("modul_id")
             ));
         }
