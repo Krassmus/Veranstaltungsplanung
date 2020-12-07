@@ -112,6 +112,10 @@ class PlanerController extends PluginController
             $filter->applyFilter($query);
         }
 
+        $this->vpcolorizers = Veranstaltungsplanung::getColorizers();
+        $colorizer = $this->vpcolorizers[$GLOBALS['user']->cfg->getValue("VERANSTALTUNGSPLANUNG_COLORIZE_" . strtoupper($object_type)) ?: "VPStandardColorizer"];
+
+
         foreach ($query->fetchAll("CourseDate") as $termin) {
             $title = (string) $termin->course['name'];
             if ($object_type === "resources") {
@@ -132,6 +136,7 @@ class PlanerController extends PluginController
                 'title' => $title,
                 'start' => date("c", $termin['date']),
                 'end' => date("c", $termin['end_time']),
+                'backgroundColor' => $colorizer->getColor($termin),
                 'classNames' => array(
                     "course_".$termin['range_id'],
                     $termin['metadate_id'] ? "dateseries" : "singledate"
@@ -161,13 +166,57 @@ class PlanerController extends PluginController
             }
 
             foreach ($query->fetchAll("EventData") as $termin) {
+
                 $termine[] = array(
                     'id' => "eventdata_".$termin->getId(),
                     'title' => $termin->author['nachname'].": ".($termin['class'] === "PRIVATE" ? _("Privater Termin") : $termin['summary'].($termin['class'] === "CONFIDENTIAL" ? _(" (vertraulich)") : "")),
                     'start' => date("c", $termin['start']),
                     'end' => date("c", $termin['end']),
+                    'editable' => false,
+                    'backgroundColor' => $colorizer->getColor($termin),
                     'classNames' => array("event_data")
                 );
+            }
+        }
+
+        //manage background colors:
+        $backgrounds = [];
+        foreach ($termine as $key => $termin) {
+            if ($backgrounds[$termin['backgroundColor']]) {
+                $backgrounds[$termin['backgroundColor']]++;
+            } else {
+                $backgrounds[$termin['backgroundColor']] = 1;
+            }
+        }
+        $commoncolors = [
+            "#e7ebf1", //content-color-20
+            "#e2efcf", //green-20
+            "#dfabcb", //violet-40
+            "#f26e00",
+            "#129c94",
+            "#682c8b",
+            "#d60000",
+            "#a85d45",
+            "#ffbd33",
+            "#28497c"
+        ];
+
+        foreach ($termine as $key => $termin) {
+            if (is_numeric($termin['backgroundColor'])
+                && $termin['backgroundColor'] < count($commoncolors)) {
+                $termine[$key]['backgroundColor'] = $commoncolors[$termin['backgroundColor']];
+            }
+        }
+
+        foreach ($termine as $key => $termin) {
+            $background_hsl = Color::hsl($termin['backgroundColor']);
+
+            //now analyze the ligting of the background and make the font white if the background is dark:
+            preg_match("/hsl\(\s*(\d+\.?\d*),\s*(\d+\.?\d*)\%,\s*(\d+\.?\d*)\%\s*\)/", $background_hsl, $matches);
+            array_shift($matches);
+            $light = $matches[2];
+            if ($light < 0.6) {
+                $termine[$key]['textColor'] = "#ffffff";
             }
         }
 
@@ -199,7 +248,7 @@ class PlanerController extends PluginController
         $termin_ids = array($termin->getId());
         foreach ($termin->dozenten as $dozent) {
             $teacher_ids[] = $dozent['user_id'];
-        };
+        }
         if (!count($teacher_ids)) {
             $statement = DBManager::get()->prepare("
                 SELECT user_id
@@ -345,6 +394,13 @@ class PlanerController extends PluginController
                 'VERANSTALTUNGSPLANUNG_DISABLED_FILTER',
                 json_encode($filters)
             );
+            $colorizers = Request::getArray("colorizer");
+            foreach (['courses', 'persons', 'resources'] as $type) {
+                $GLOBALS['user']->cfg->store(
+                    'VERANSTALTUNGSPLANUNG_COLORIZE_'.strtoupper($type),
+                    $colorizers[$type]
+                );
+            }
             PageLayout::postSuccess(_("Einstellungen wurden gespeichert."));
             $this->redirect("planer/index");
         }

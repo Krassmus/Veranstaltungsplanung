@@ -49,8 +49,21 @@
 
     <fieldset>
         <legend>
-            <?= _("Rechte Seitenleiste") ?>
+            <?= _("Terminfarben") ?>
         </legend>
+
+        <? foreach (array('courses' => _("Farben für Veranstaltungstermine"), 'persons' => _("Farben für Persontermine"), 'resources' => _("Farben für Ressourcenbuchungen")) as $type => $title) : ?>
+        <label>
+            <?= $title ?>
+            <select name="colorizer[<?= htmlReady($type) ?>]">
+                <? foreach ((array) Veranstaltungsplanung::getColorizers() as $colorizer) : ?>
+                <option value="<?= htmlReady(get_class($colorizer)) ?>"<?= $GLOBALS['user']->cfg->getValue("VERANSTALTUNGSPLANUNG_COLORIZE_" . strtoupper($type)) === get_class($colorizer) ? " selected" : "" ?>>
+                    <?= htmlReady($colorizer->getName()) ?>
+                </option>
+                <? endforeach ?>
+            </select>
+        </label>
+        <? endforeach ?>
     </fieldset>
 
     <div data-dialog-button>

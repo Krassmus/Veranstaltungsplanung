@@ -17,6 +17,12 @@ require_once __DIR__."/lib/filters/VPUserRoleFilter.php";
 require_once __DIR__."/lib/filters/VPResourceTreeFilter.php";
 require_once __DIR__."/lib/filters/VPResourceSeatFilter.php";
 
+require_once __DIR__."/lib/colorizers/VPColorizer.interface.php";
+require_once __DIR__."/lib/colorizers/VPStandardColorizer.php";
+require_once __DIR__."/lib/colorizers/VPInstituteColorizer.php";
+require_once __DIR__."/lib/colorizers/VPStudyareaColorizer.php";
+require_once __DIR__."/lib/colorizers/VPPlanningcolorsColorizer.php";
+
 class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
 {
 
@@ -29,6 +35,24 @@ class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
             }
         }
         return $vpfilters;
+    }
+
+    static public function getColorizers()
+    {
+        $vpcolorizers = array();
+        foreach (get_declared_classes() as $class) {
+            if (in_array('VPColorizer', class_implements($class))) {
+                $vpcolorizers[$class] = new $class();
+            }
+        }
+        return $vpcolorizers;
+    }
+
+    static public function stringToColorCode($str)
+    {
+        $code = dechex(crc32($str));
+        $code = substr($code, 0, 6);
+        return "#".$code;
     }
 
     public function __construct()
