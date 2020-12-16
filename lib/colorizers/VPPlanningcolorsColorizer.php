@@ -3,16 +3,14 @@
 class VPPlanningcolorsColorizer implements VPColorizer
 {
 
-    /**
-     * Name of the filter displayed in the configuration window.
-     * @return string
-     */
-    public function getName()
+    public function getFilterIndexes()
     {
-        return _("Planungsfarben für regelmäßige Termine");
+        return [
+            'semesterplan' => _("Planungsfarben für regelmäßige Termine")
+        ];
     }
 
-    public function getColor($termin)
+    public function getColor($index, $termin)
     {
         if (is_a($termin, "CourseDate")) {
             if ($termin->metadate_id) {

@@ -3,16 +3,14 @@
 class VPStudyareaColorizer implements VPColorizer
 {
 
-    /**
-     * Name of the filter displayed in the configuration window.
-     * @return string
-     */
-    public function getName()
+    public function getFilterIndexes()
     {
-        return _("Farben nach Studienbereichen");
+        return [
+            'semtree_id' => _("Farben nach Studienbereichen")
+        ];
     }
 
-    public function getColor($termin)
+    public function getColor($index, $termin)
     {
         if (is_a($termin, "CourseDate")) {
             if (count($termin->course->study_areas) > 1) {

@@ -3,16 +3,14 @@
 class VPStandardColorizer implements VPColorizer
 {
 
-    /**
-     * Name of the filter displayed in the configuration window.
-     * @return string
-     */
-    public function getName()
+    public function getFilterIndexes()
     {
-        return _("Standardfarben");
+        return [
+            'standard' => _("Standardfarben")
+        ];
     }
 
-    public function getColor($termin)
+    public function getColor($index, $termin)
     {
         if (is_a($termin, "CourseDate")) {
             return $termin['metadate_id'] ? "1" : "0";

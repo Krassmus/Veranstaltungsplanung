@@ -57,9 +57,11 @@
             <?= $title ?>
             <select name="colorizer[<?= htmlReady($type) ?>]">
                 <? foreach ((array) Veranstaltungsplanung::getColorizers() as $colorizer) : ?>
-                <option value="<?= htmlReady(get_class($colorizer)) ?>"<?= $GLOBALS['user']->cfg->getValue("VERANSTALTUNGSPLANUNG_COLORIZE_" . strtoupper($type)) === get_class($colorizer) ? " selected" : "" ?>>
-                    <?= htmlReady($colorizer->getName()) ?>
-                </option>
+                    <? foreach ($colorizer->getFilterIndexes() as $index => $name) : ?>
+                        <option value="<?= htmlReady(get_class($colorizer)."__".$index) ?>"<?= $GLOBALS['user']->cfg->getValue("VERANSTALTUNGSPLANUNG_COLORIZE_" . strtoupper($type)) === get_class($colorizer)."__".$index ? " selected" : "" ?>>
+                            <?= htmlReady($name) ?>
+                        </option>
+                    <? endforeach ?>
                 <? endforeach ?>
             </select>
         </label>

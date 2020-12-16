@@ -22,6 +22,7 @@ require_once __DIR__."/lib/colorizers/VPStandardColorizer.php";
 require_once __DIR__."/lib/colorizers/VPInstituteColorizer.php";
 require_once __DIR__."/lib/colorizers/VPStudyareaColorizer.php";
 require_once __DIR__."/lib/colorizers/VPPlanningcolorsColorizer.php";
+require_once __DIR__."/lib/colorizers/VPDatafieldColorizer.php";
 
 class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
 {

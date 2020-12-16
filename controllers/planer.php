@@ -113,8 +113,14 @@ class PlanerController extends PluginController
         }
 
         $this->vpcolorizers = Veranstaltungsplanung::getColorizers();
-        $colorizer = $this->vpcolorizers[$GLOBALS['user']->cfg->getValue("VERANSTALTUNGSPLANUNG_COLORIZE_" . strtoupper($object_type)) ?: "VPStandardColorizer"];
-
+        if ($GLOBALS['user']->cfg->getValue("VERANSTALTUNGSPLANUNG_COLORIZE_" . strtoupper($object_type))) {
+            list($colorizerclass, $colorizerindex) = explode("__", $GLOBALS['user']->cfg->getValue("VERANSTALTUNGSPLANUNG_COLORIZE_" . strtoupper($object_type)));
+            $colorizer = $this->vpcolorizers[$colorizerclass];
+        }
+        if (!$colorizer) {
+            $colorizer = $this->vpcolorizers["VPStandardColorizer"];
+            $colorizerindex = "standard";
+        }
 
         foreach ($query->fetchAll("CourseDate") as $termin) {
             $title = (string) $termin->course['name'];
@@ -136,7 +142,7 @@ class PlanerController extends PluginController
                 'title' => $title,
                 'start' => date("c", $termin['date']),
                 'end' => date("c", $termin['end_time']),
-                'backgroundColor' => $colorizer->getColor($termin),
+                'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
                 'classNames' => array(
                     "course_".$termin['range_id'],
                     $termin['metadate_id'] ? "dateseries" : "singledate"
@@ -173,7 +179,7 @@ class PlanerController extends PluginController
                     'start' => date("c", $termin['start']),
                     'end' => date("c", $termin['end']),
                     'editable' => false,
-                    'backgroundColor' => $colorizer->getColor($termin),
+                    'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
                     'classNames' => array("event_data")
                 );
             }

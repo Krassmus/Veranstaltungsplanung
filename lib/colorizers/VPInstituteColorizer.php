@@ -3,16 +3,14 @@
 class VPInstituteColorizer implements VPColorizer
 {
 
-    /**
-     * Name of the filter displayed in the configuration window.
-     * @return string
-     */
-    public function getName()
+    public function getFilterIndexes()
     {
-        return _("Farben nach Einrichtungen");
+        return [
+            'institut_id' => _("Farben nach Einrichtungen")
+        ];
     }
 
-    public function getColor($termin)
+    public function getColor($index, $termin)
     {
         if (is_a($termin, "CourseDate")) {
             return Veranstaltungsplanung::stringToColorCode($termin->course->institut_id);
