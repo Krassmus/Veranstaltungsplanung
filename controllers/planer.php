@@ -184,6 +184,68 @@ class PlanerController extends PluginController
                 );
             }
         }
+        if ($object_type === "resources") {
+            $query = new \Veranstaltungsplanung\SQLQuery(
+                "termine",
+                "open_room_requests"
+            );
+            $query->join(
+                "resource_request_appointments",
+                "resource_request_appointments",
+                "`termine`.`termin_id` = `resource_request_appointments`.`appointment_id`"
+            );
+            $query->join(
+                "resource_requests",
+                "resource_requests",
+                "(`termine`.`termin_id` = `resource_requests`.`termin_id`)
+                    OR (`resource_request_appointments`.`request_id` = `resource_requests`.`id`)
+                    OR (`termine`.`metadate_id` = `resource_requests`.`metadate_id`)"
+            );
+            $query->where("start", "`termine`.`end_time` >= :start", array(
+                'start' => $start
+            ));
+            $query->where("end", "`termine`.`date` <= :end", array(
+                'end' => $end
+            ));
+            $query->groupBy("`termine`.`termin_id`");
+            foreach ($this->vpfilters['resources'] as $filter) {
+                $filter->applyFilter($query);
+            }
+
+            foreach ($query->fetchAll("CourseDate") as $termin) {
+                $title = (string) $termin->course['name'];
+                $statement = DBManager::get()->prepare("
+                    SELECT resources.*
+                    FROM resources
+                        INNER JOIN resource_requests ON (resource_requests.resource_id = resources.id)
+                        LEFT JOIN resource_request_appointments ON (`resource_request_appointments`.`request_id` = `resource_requests`.`id`)
+                    WHERE `resource_requests`.`metadate_id` = :metadate_id
+                        OR `resource_request_appointments`.`appointment_id` = :termin_id
+                        OR `resource_requests`.`termin_id` = :termin_id
+                ");
+                $statement->execute([
+                    'termin_id' => $termin->getId(),
+                    'metadate_id' => $termin['metadate_id'] ?: "nix"
+                ]);
+                $resource = Resource::buildExisting($statement->fetch(PDO::FETCH_ASSOC));
+                if ($resource) {
+                    $title = $resource['name'].": ".$title;
+                }
+                $title = _("Raumanfrage")." ".$title;
+                $termine[] = array(
+                    'id' => "termine_".$termin->getId(),
+                    'title' => $title,
+                    'start' => date("c", $termin['date']),
+                    'end' => date("c", $termin['end_time']),
+                    'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
+                    'classNames' => array(
+                        "course_".$termin['range_id'],
+                        $termin['metadate_id'] ? "dateseries" : "singledate",
+                        "open_request"
+                    )
+                );
+            }
+        }
 
         //manage background colors:
         $backgrounds = [];
