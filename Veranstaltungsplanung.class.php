@@ -49,6 +49,27 @@ class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
         return $vpcolorizers;
     }
 
+    static public function isReadOnly()
+    {
+        $status = Config::get()->VPLANER_READONLY;
+        if (!$status) {
+            return false;
+        }
+        if ($status === "autor") {
+            return !$GLOBALS['perm']->have_perm("tutor");
+        }
+        if ($status === "tutor") {
+            return !$GLOBALS['perm']->have_perm("dozent");
+        }
+        if ($status === "dozent") {
+            return !$GLOBALS['perm']->have_perm("admin");
+        }
+        if ($status === "admin") {
+            return !$GLOBALS['perm']->have_perm("root");
+        }
+        return false;
+    }
+
     static public function stringToColorCode($str)
     {
         $code = dechex(crc32($str));
@@ -59,7 +80,7 @@ class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
     public function __construct()
     {
         parent::__construct();
-        if ($GLOBALS['perm']->have_perm("admin")) {
+        if ($GLOBALS['perm']->have_perm("dozent")) {
             $nav = new Navigation(
                 _("Planung"),
                 PluginEngine::getURL($this, array(), "planer/index")

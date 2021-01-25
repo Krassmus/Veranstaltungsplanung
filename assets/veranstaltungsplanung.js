@@ -228,7 +228,7 @@ jQuery(function () {
         minTime: $("#mintime").val() || '00:00:00',
         maxTime: $("#maxtime").val() || '24:00:00',
         scrollTime: '07:30:00',
-        selectable: true,
+        selectable: jQuery("#editable").val() ? true : false, //optionally prevent creating new dates
         selectMirror: true,
         timezone: 'local',
         eventRender: function(info) {
@@ -258,7 +258,7 @@ jQuery(function () {
                 STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit', data)
             );
         },
-        editable: true,
+        editable: jQuery("#editable").val() ? true : false,
         defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : "now",
         locale: "de",
         events: {

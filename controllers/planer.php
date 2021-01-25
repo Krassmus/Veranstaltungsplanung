@@ -12,9 +12,6 @@ class PlanerController extends PluginController
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        if (!$GLOBALS['perm']->have_perm("admin")) {
-            throw new AccessDeniedException();
-        }
         if (method_exists("PageLayout", "allowFullscreenMode")) {
             PageLayout::allowFullscreenMode();
         }
@@ -137,9 +134,13 @@ class PlanerController extends PluginController
                 }
                 $title = $dozenten.": ".$title;
             }
+            $editable = !Veranstaltungsplanung::isReadOnly()
+                && $GLOBALS['perm']->have_studip_perm("tutor", $termin['range_id'])
+                && !LockRules::Check($termin['range_id'], 'room_time');
             $termine[] = array(
                 'id' => "termine_".$termin->getId(),
                 'title' => $title,
+                'editable' => $editable,
                 'start' => date("c", $termin['date']),
                 'end' => date("c", $termin['end_time']),
                 'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
@@ -232,10 +233,14 @@ class PlanerController extends PluginController
                     $title = $resource['name'].": ".$title;
                 }
                 $title = _("Raumanfrage")." ".$title;
+                $editable = !Veranstaltungsplanung::isReadOnly()
+                    && $GLOBALS['perm']->have_studip_perm("tutor", $termin['range_id'])
+                    && !LockRules::Check($termin['range_id'], 'room_time');
                 $termine[] = array(
                     'id' => "termine_".$termin->getId(),
                     'title' => $title,
                     'start' => date("c", $termin['date']),
+                    'editable' => $editable,
                     'end' => date("c", $termin['end_time']),
                     'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
                     'classNames' => array(
