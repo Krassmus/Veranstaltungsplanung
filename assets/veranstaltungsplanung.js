@@ -38,6 +38,7 @@ STUDIP.Veranstaltungsplanung.changeEventEnd = function (info) {
     var termin_id = info.event.id;
     STUDIP.Veranstaltungsplanung.dragging = false;
     var events = STUDIP.Veranstaltungsplanung.calendar.getEvents();
+    //remove yellow and black blocked dates:
     for (var i in events) {
         for (var k in events[i].classNames) {
             if (events[i].classNames[k] === "blocked") {
@@ -47,37 +48,47 @@ STUDIP.Veranstaltungsplanung.changeEventEnd = function (info) {
     }
 };
 STUDIP.Veranstaltungsplanung.dropEvent = function (info) {
-    var termin_id = info.event.id;
-    var revert = info.revert;
-    var start = parseInt(info.event.start.getTime() / 1000, 10).toFixed(0);
-    var end = parseInt(info.event.end.getTime() / 1000, 10).toFixed(0);
+    let termin_id = info.event.id;
+    let start = parseInt(info.event.start.getTime() / 1000, 10).toFixed(0);
+    let end = parseInt(info.event.end.getTime() / 1000, 10).toFixed(0);
 
-    //AJAX to change; if there is a collision open a dialog and ask what to do
-    jQuery.ajax({
-        "url": STUDIP.URLHelper.getURL("plugins.php/veranstaltungsplanung/date/change_event"),
-        "data": {
-            "termin_id": info.event.id,
-            "start": start,
-            "end": end
-        },
-        "dataType": "json",
-        "success": function (output) {
-            if (output.alert) {
-                if (typeof STUDIP.Report !== "undefined") {
-                    STUDIP.Report.info("Hinweis".toLocaleString(), output.alert);
-                } else {
-                    window.alert(output.alert);
+    let revert = function () {
+        info.revert();
+    };
+    let makeChange = function () {
+        //AJAX to change; if there is a collision open a dialog and ask what to do
+        jQuery.ajax({
+            "url": STUDIP.URLHelper.getURL("plugins.php/veranstaltungsplanung/date/change_event"),
+            "data": {
+                "termin_id": info.event.id,
+                "start": start,
+                "end": end
+            },
+            "dataType": "json",
+            "success": function (output) {
+                if (output.alert) {
+                    if (typeof STUDIP.Report !== "undefined") {
+                        STUDIP.Report.info("Hinweis".toLocaleString(), output.alert);
+                    } else {
+                        window.alert(output.alert);
+                    }
+                    STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
                 }
-                STUDIP.Veranstaltungsplanung.calendar.refetchEvents();
-            }
-            if (output.rejected) {
+                if (output.rejected) {
+                    info.revert();
+                }
+            },
+            "error": function () {
                 info.revert();
             }
-        },
-        "error": function () {
-            info.revert();
-        }
-    });
+        });
+    };
+
+    if ($("#always_ask").val() !== "0") {
+        STUDIP.Dialog.confirm("Soll der Termin verschoben werden?", makeChange, revert);
+    } else {
+        makeChange();
+    }
 };
 
 STUDIP.Veranstaltungsplanung.appendFragment = function () {

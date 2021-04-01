@@ -14,7 +14,8 @@
 <div id="calendar"
      data-default_date="<?= date("r", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTDATE ?: time()) ?>"></div>
 
-<input type="hidden" name="editable" value="<?= Veranstaltungsplanung::isReadOnly() ? "0" : "1" ?>">
+<input type="hidden" id="editable" value="<?= Veranstaltungsplanung::isReadOnly() ? "0" : "1" ?>">
+<input type="hidden" id="always_ask" value="<?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_ALWAYS_ASK ? "1" : "0" ?>">
 
 <input type="hidden" class="date_fetch_params" id="object_type" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) ?>">
 <? foreach ($vpfilters as $object_type => $filterset) : ?>

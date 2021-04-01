@@ -457,6 +457,8 @@ class PlanerController extends PluginController
                 'VERANSTALTUNGSPLANUNG_HIDDENDAYS',
                 json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("hidden_days")))
             );
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_ALWAYS_ASK', Request::get("always_ask", 0));
+
             $all_filters = array_merge(
                 array_map(function ($f) { return get_class($f); }, (array) $this->filters['courses']),
                 array_map(function ($f) { return get_class($f); }, (array) $this->filters['persons']),

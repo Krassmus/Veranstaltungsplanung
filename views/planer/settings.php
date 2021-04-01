@@ -6,7 +6,11 @@
         </legend>
         <label>
             <?= _("Orientierungslinie (x Uhr)") ?>
-            <input type="number" min="0" max="23" name="line" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE ?: "12") ?>">
+            <input type="number"
+                   min="0"
+                   max="23"
+                   name="line"
+                   value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE ?: "12") ?>">
         </label>
 
         <label>
@@ -29,6 +33,14 @@
                 jQuery("select[multiple].multiselect").select2();
             });
         </script>
+
+        <label>
+            <input type="checkbox"
+                   name="always_ask"
+                   <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_ALWAYS_ASK ? 'checked' : '' ?>
+                   value="1">
+            <?= _("Immer fragen, bevor ein Termin verschoben wird.") ?>
+        </label>
     </fieldset>
 
     <? $filter_names = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) : array() ?>
