@@ -11,6 +11,7 @@ require_once __DIR__."/lib/filters/VPCourseStgTeilFilter.php";
 require_once __DIR__."/lib/filters/VPCourseModulFilter.php";
 require_once __DIR__."/lib/filters/VPCourseVisibilityFilter.php";
 
+require_once __DIR__."/lib/filters/VPUserUserFilter.php";
 require_once __DIR__."/lib/filters/VPUserInstituteFilter.php";
 require_once __DIR__."/lib/filters/VPUserRoleFilter.php";
 
