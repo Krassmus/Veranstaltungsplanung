@@ -452,6 +452,9 @@ class PlanerController extends PluginController
         $this->filters = Veranstaltungsplanung::getFilters();
         if (Request::isPost()) {
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_LINE', Request::get("line"));
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_LINE2', Request::get("line2"));
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_MINTIME', Request::get("mintime"));
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_MAXTIME', Request::get("maxtime"));
 
             $GLOBALS['user']->cfg->store(
                 'VERANSTALTUNGSPLANUNG_HIDDENDAYS',

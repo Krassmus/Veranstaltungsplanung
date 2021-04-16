@@ -4,6 +4,7 @@
         <legend>
             <?= _("Generelle Ansicht") ?>
         </legend>
+
         <label>
             <?= _("Orientierungslinie (x Uhr)") ?>
             <input type="number"
@@ -12,6 +13,31 @@
                    name="line"
                    value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE ?: "12") ?>">
         </label>
+
+        <label>
+            <?= _("Orientierungslinie 2 (x Uhr)") ?>
+            <input type="number"
+                   min="0"
+                   max="23"
+                   name="line2"
+                   value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE2 ?: "12") ?>">
+        </label>
+
+        <div class="hgroup">
+            <label>
+                <?= _("Beginn des Tages") ?>
+                <input type="time"
+                       name="mintime"
+                       value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_MINTIME ?: "00:00") ?>">
+            </label>
+
+            <label>
+                <?= _("Ende des Tages") ?>
+                <input type="time"
+                       name="maxtime"
+                       value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_MAXTIME ?: "23:59") ?>">
+            </label>
+        </div>
 
         <label>
             <?= _("Tage verstecken") ?>

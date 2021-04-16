@@ -14,6 +14,8 @@
 <div id="calendar"
      data-default_date="<?= date("r", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTDATE ?: time()) ?>"></div>
 
+<input type="hidden" id="mintime" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_MINTIME ?: "00:00") ?>:00">
+<input type="hidden" id="maxtime" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_MAXTIME ?: "24:00") ?>:00">
 <input type="hidden" id="editable" value="<?= Veranstaltungsplanung::isReadOnly() ? "0" : "1" ?>">
 <input type="hidden" id="always_ask" value="<?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_ALWAYS_ASK ? "1" : "0" ?>">
 
@@ -29,7 +31,10 @@
 <? endforeach ?>
 
 <style>
-    #calendar tr[data-time="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE ?: "12") ?>:00:00"] > td {
+    #calendar tr[data-time="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE ? ($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE < 10 ? "0" : "").$GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE : "12") ?>:00:00"] > td {
+        border-top: 1px solid #d60000;
+    }
+    #calendar tr[data-time="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE2 ? ($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE2 < 10 ? "0" : "").$GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_LINE2 : "12") ?>:00:00"] > td {
         border-top: 1px solid #d60000;
     }
     #calendar .ui-datepicker-trigger {
