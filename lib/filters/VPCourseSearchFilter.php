@@ -11,25 +11,16 @@ class VPCourseSearchFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Suche");
-    }
-
-    /**
-     * Name of the Parameter in URL and in widget.
-     * @return string "course_search"
-     */
-    public function getParameterName()
-    {
-        return "course_search";
+        return ["course_search" => _("Suche")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $textsearch = new SearchWidget();
         $textsearch->addNeedle(
@@ -45,7 +36,7 @@ class VPCourseSearchFilter implements VPFilter
         return $textsearch;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_SEARCHTEXT', Request::get("course_search"));
         if (Request::get("course_search")) {

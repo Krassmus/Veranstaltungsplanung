@@ -11,25 +11,16 @@ class VPUserRoleFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Rollen-Filter");
-    }
-
-    /**
-     * Name of the Parameter in URL and in widget.
-     * @return string "course_search"
-     */
-    public function getParameterName()
-    {
-        return "person_status";
+        return ["person_status" => _("Rollen-Filter")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $person_status = new SelectWidget(
             _("Rollen-Filter"),
@@ -59,7 +50,7 @@ class VPUserRoleFilter implements VPFilter
         return $person_status;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $status = json_decode(Request::get("person_status"), true);
         $GLOBALS['user']->cfg->store('ADMIN_USER_STATUS', serialize($status));

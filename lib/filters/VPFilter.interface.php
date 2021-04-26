@@ -40,30 +40,27 @@ interface VPFilter
     static public function context();
 
     /**
-     * Name of the filter displayed in the configuration window.
-     * @return string
+     * Returns an associative array of names with their indexes like array('param1' => _("Freie Suche")).
+     * The name is a readable string for the configuration window. And the index will be used in
+     * the other methods of this class as $index. $index must be unique over all VPFilters.
+     * @return associative array : like array('param1' => _("Freie Suche"))
      */
-    public function getName();
+    public function getNames();
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
+     * @param string $index : index of the parameter
      * @return SidebarWidget
      */
-    public function getSidebarWidget();
-
-    /**
-     * Name of the parameter that is sent by the sidebar widget. We need to know this to tunnel
-     * it to the URL and fetch dates with it.
-     * @return string
-     */
-    public function getParameterName();
+    public function getSidebarWidget($index);
 
     /**
      * Method executed to change the SQLQuery-object. The parameter above will be in
      * the Request. Usually the filter stores this parameter in a userconfig
      * and then uses it to add contraints to $query.
+     * @param string $index : index of the parameter
      * @param \Veranstaltungsplanung\SQLQuery $query
      * @return void
      */
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query);
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query);
 }

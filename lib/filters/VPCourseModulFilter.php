@@ -11,25 +11,16 @@ class VPCourseModulFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("MVV Module");
-    }
-
-    /**
-     * Name of the Parameter in URL and in widget.
-     * @return string "modulteil_id"
-     */
-    public function getParameterName()
-    {
-        return "modul_id";
+        return ["modul_id" => _("MVV Module")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $modulwidget = new SelectWidget(
             _("Module"),
@@ -85,7 +76,7 @@ class VPCourseModulFilter implements VPFilter
         return $modulwidget;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_MODUL', Request::get("modul_id"));
         if (Request::get("modul_id")) {

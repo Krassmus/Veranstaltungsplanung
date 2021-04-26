@@ -69,7 +69,7 @@
         </label>
     </fieldset>
 
-    <? $filter_names = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) : array() ?>
+    <? $filter_names = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) : [] ?>
     <? foreach (array('courses' => _("Veranstaltungen"), 'persons' => _("Personen"), 'resources' => _("Ressourcen")) as $type => $title) : ?>
         <fieldset>
             <legend>
@@ -77,10 +77,14 @@
             </legend>
 
             <? foreach ((array) $filters[$type] as $filter) : ?>
-                <label>
-                    <input type="checkbox" name="filter[]" value="<?= htmlReady(get_class($filter)) ?>"<?= !in_array(get_class($filter), $filter_names) ? "checked" : "" ?>>
-                    <?= htmlReady($filter->getName()) ?>
-                </label>
+                <? foreach ($filter->getNames() as $index => $name) : ?>
+                    <label>
+                        <input type="checkbox"
+                               name="filter[]"
+                               value="<?= htmlReady($index) ?>"<?= !in_array($index, $filter_names) ? "checked" : "" ?>>
+                        <?= htmlReady($name) ?>
+                    </label>
+                <? endforeach ?>
             <? endforeach ?>
         </fieldset>
     <? endforeach ?>

@@ -10,21 +10,16 @@ class VPUserUserFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Person");
-    }
-
-    public function getParameterName()
-    {
-        return "user_search";
+        return ["user_search" => _("Person")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $textsearch = new SearchWidget();
         $textsearch->addNeedle(
@@ -40,7 +35,7 @@ class VPUserUserFilter implements VPFilter
         return $textsearch;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_USERSEARCH', Request::get("user_search"));
         if ($GLOBALS['user']->cfg->ADMIN_COURSES_USERSEARCH) {

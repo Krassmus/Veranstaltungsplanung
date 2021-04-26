@@ -11,32 +11,23 @@ class VPResourceSeatFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Sitzplätze");
-    }
-
-    /**
-     * Name of the Parameter in URL and in widget.
-     * @return string "course_search"
-     */
-    public function getParameterName()
-    {
-        return "seats";
+        return ["seats" => _("Sitzplätze")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $resource_tree = new SeatSelector();
         $resource_tree->addLayoutCSSClass("resources");
         return $resource_tree;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $seats = explode(",", Request::get("seats"));
         if (($seats[1] > 0) && ($seats[1] < $seats[0])) {

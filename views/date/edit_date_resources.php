@@ -1,6 +1,6 @@
 <form class="default"
       method="post"
-      action="<?= PluginEngine::getLink($plugin, array(), "date/edit") ?>"
+      action="<?= PluginEngine::getLink($plugin, array(), "date/save") ?>"
       data-dialog>
 
     <input type="hidden" name="start" value="<?= htmlReady($start) ?>">

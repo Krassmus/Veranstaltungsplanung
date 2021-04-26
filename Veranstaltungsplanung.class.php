@@ -10,10 +10,12 @@ require_once __DIR__."/lib/filters/VPCourseStudyareaFilter.php";
 require_once __DIR__."/lib/filters/VPCourseStgTeilFilter.php";
 require_once __DIR__."/lib/filters/VPCourseModulFilter.php";
 require_once __DIR__."/lib/filters/VPCourseVisibilityFilter.php";
+require_once __DIR__."/lib/filters/VPCourseDatafieldsFilter.php";
 
 require_once __DIR__."/lib/filters/VPUserUserFilter.php";
 require_once __DIR__."/lib/filters/VPUserInstituteFilter.php";
 require_once __DIR__."/lib/filters/VPUserRoleFilter.php";
+require_once __DIR__."/lib/filters/VPUserDatafieldsFilter.php";
 
 require_once __DIR__."/lib/filters/VPResourceTreeFilter.php";
 require_once __DIR__."/lib/filters/VPResourceSeatFilter.php";

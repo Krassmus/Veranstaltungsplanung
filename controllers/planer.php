@@ -106,7 +106,9 @@ class PlanerController extends PluginController
         }
         $this->vpfilters = Veranstaltungsplanung::getFilters();
         foreach ((array) $this->vpfilters[$object_type] as $filter) {
-            $filter->applyFilter($query);
+            foreach ($filter->getNames() as $index => $name) {
+                $filter->applyFilter($index, $query);
+            }
         }
 
         $this->vpcolorizers = Veranstaltungsplanung::getColorizers();
@@ -169,7 +171,9 @@ class PlanerController extends PluginController
             );
             $query->groupBy("`event_data`.`event_id`");
             foreach ($this->vpfilters['persons'] as $filter) {
-                $filter->applyFilter($query);
+                foreach ($filter->getNames() as $index => $name) {
+                    $filter->applyFilter($index, $query);
+                }
             }
 
             foreach ($query->fetchAll("EventData") as $termin) {
@@ -210,7 +214,9 @@ class PlanerController extends PluginController
             ));
             $query->groupBy("`termine`.`termin_id`");
             foreach ($this->vpfilters['resources'] as $filter) {
-                $filter->applyFilter($query);
+                foreach ($filter->getNames() as $index => $name) {
+                    $filter->applyFilter($index, $query);
+                }
             }
 
             foreach ($query->fetchAll("CourseDate") as $termin) {
@@ -462,12 +468,15 @@ class PlanerController extends PluginController
             );
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_ALWAYS_ASK', Request::get("always_ask", 0));
 
-            $all_filters = array_merge(
-                array_map(function ($f) { return get_class($f); }, (array) $this->filters['courses']),
-                array_map(function ($f) { return get_class($f); }, (array) $this->filters['persons']),
-                array_map(function ($f) { return get_class($f); }, (array) $this->filters['resources'])
-            );
-            $filters = array_values(array_diff($all_filters, Request::getArray("filter")));
+            $filters = [];
+            foreach ($this->filters as $filter_objects) {
+                foreach ($filter_objects as $filter) {
+                    foreach ($filter->getNames() as $index => $name) {
+                        $filters[] = $index;
+                    }
+                }
+            }
+            $filters = array_values(array_diff($filters, Request::getArray("filter")));
             $GLOBALS['user']->cfg->store(
                 'VERANSTALTUNGSPLANUNG_DISABLED_FILTER',
                 json_encode($filters)

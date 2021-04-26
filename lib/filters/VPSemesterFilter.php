@@ -10,21 +10,16 @@ class VPSemesterFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Semester");
-    }
-
-    public function getParameterName()
-    {
-        return "semester_id";
+        return ["semester_id" => _("Semester")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $semester_select = new SelectWidget(
             _("Semester"),
@@ -49,7 +44,7 @@ class VPSemesterFilter implements VPFilter
         return $semester_select;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', Request::get("semester_id"));
         if (Request::get("semester_id") && Request::get("semester_id") !== "all") {

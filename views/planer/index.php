@@ -22,11 +22,13 @@
 <input type="hidden" class="date_fetch_params" id="object_type" value="<?= htmlReady($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) ?>">
 <? foreach ($vpfilters as $object_type => $filterset) : ?>
     <? foreach ($filterset as $filter) : ?>
+        <? foreach ($filter->getNames() as $index => $name) : ?>
         <input type="hidden"
                data-object_type="<?= htmlReady($object_type) ?>"
                class="date_fetch_params"
-               id="<?= htmlReady($filter->getParameterName()) ?>"
+               id="<?= htmlReady($index) ?>"
                value="">
+        <? endforeach ?>
     <? endforeach ?>
 <? endforeach ?>
 
@@ -83,8 +85,13 @@ $disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DIS
 
 foreach ($vpfilters as $object_type => $filterset) {
     foreach ($filterset as $filter) {
-        if (!in_array(get_class($filter), $disabled_filters)) {
-            Sidebar::Get()->addWidget($filter->getSidebarWidget(), get_class($filter));
+        foreach ($filter->getNames() as $index => $filtername) {
+            if (!in_array($index, $disabled_filters)) {
+                $widget = $filter->getSidebarWidget($index);
+                if ($widget) {
+                    Sidebar::Get()->addWidget($widget, $index);
+                }
+            }
         }
     }
 }

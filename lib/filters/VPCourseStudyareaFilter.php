@@ -11,32 +11,23 @@ class VPCourseStudyareaFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Studienbereiche");
-    }
-
-    /**
-     * Name of the Parameter in URL and in widget.
-     * @return string "course_search"
-     */
-    public function getParameterName()
-    {
-        return "study_area_ids";
+        return ["study_area_ids" => _("Studienbereiche")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $study_area = new StudyAreaSelector();
         $study_area->addLayoutCSSClass("courses");
         return $study_area;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_STUDYAREAS', Request::get("study_area_ids"));
         if (Request::get("study_area_ids")) {

@@ -11,25 +11,16 @@ class VPCourseVisibilityFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Sichtbarkeit");
-    }
-
-    /**
-     * Name of the Parameter in URL and in widget.
-     * @return string "course_search"
-     */
-    public function getParameterName()
-    {
-        return "visibility";
+        return ["visibility" => _("Sichtbarkeit")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $visibility = new SelectWidget(
             _("Sichtbarkeit"),
@@ -58,7 +49,7 @@ class VPCourseVisibilityFilter implements VPFilter
         return $visibility;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_VISIBILITY', Request::get("visibility"));
         if (Request::get("visibility")) {

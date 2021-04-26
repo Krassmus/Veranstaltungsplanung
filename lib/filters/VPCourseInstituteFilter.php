@@ -11,21 +11,16 @@ class VPCourseInstituteFilter implements VPFilter
      * Name of the filter displayed in the configuration window.
      * @return string
      */
-    public function getName()
+    public function getNames()
     {
-        return _("Einrichtung");
-    }
-
-    public function getParameterName()
-    {
-        return "institut_id";
+        return ['institut_id' => _("Einrichtung")];
     }
 
     /**
      * Returns a widget (or null) that gets attached to the sidebar.
      * @return SidebarWidget
      */
-    public function getSidebarWidget()
+    public function getSidebarWidget($index)
     {
         $institutes = new SelectWidget(
             _("Einrichtung"),
@@ -50,7 +45,7 @@ class VPCourseInstituteFilter implements VPFilter
         return $institutes;
     }
 
-    public function applyFilter(\Veranstaltungsplanung\SQLQuery $query)
+    public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
         $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::get("institut_id") ?: "all");
         if (Request::get("institut_id")
