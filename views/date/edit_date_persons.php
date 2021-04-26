@@ -30,9 +30,11 @@
                 multiple
                 class="select2">
             <? foreach ($persons as $user) : ?>
-                <option value="<?= htmlReady($user->getId()) ?>"<?= (!$date->isNew() && in_array($user->getId(), $selected_persons) ? " selected" : "") ?>>
-                    <?= htmlReady($user->getFullName()) ?>
-                </option>
+                <? if (!$GLOBALS['perm']->have_perm("admin", $user->getId()) && $GLOBALS['perm']->have_perm("dozent", $user->getId())) : ?>
+                    <option value="<?= htmlReady($user->getId()) ?>"<?= (!$date->isNew() && in_array($user->getId(), $selected_persons) ? " selected" : "") ?>>
+                        <?= htmlReady($user->getFullName()) ?>
+                    </option>
+                <? endif ?>
             <? endforeach ?>
         </select>
     </label>
