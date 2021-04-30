@@ -1,6 +1,6 @@
 <form class="default vplaner_edit_date"
       method="post"
-      action="<?= PluginEngine::getLink($plugin, array(), "date/save/".$date->getId()) ?>"
+      action="<?= PluginEngine::getLink($plugin, [], "date/save/".$date->getId()) ?>"
       data-dialog>
 
     <input type="hidden" name="object_type" value="<?= htmlReady(Request::get("object_type")) ?>">

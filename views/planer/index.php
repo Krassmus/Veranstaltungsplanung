@@ -57,7 +57,7 @@
 
 $select = new SelectWidget(
     _("Objekt-Typ"),
-    PluginEngine::getURL($this->plugin, array(), "planer/change_type"),
+    PluginEngine::getURL($this->plugin, [], "planer/change_type"),
     "object_type"
 );
 $select->class = "change_type";
@@ -81,7 +81,7 @@ $select->addElement(new SelectElement(
 );
 Sidebar::Get()->addWidget($select);
 
-$disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) ?: array();
+$disabled_filters = json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) ?: [];
 
 foreach ($vpfilters as $object_type => $filterset) {
     foreach ($filterset as $filter) {
@@ -99,14 +99,14 @@ foreach ($vpfilters as $object_type => $filterset) {
 $actions = new ActionsWidget();
 $actions->addLink(
     _("Planer konfigurieren"),
-    PluginEngine::getURL($plugin, array(), "planer/settings"),
+    PluginEngine::getURL($plugin, [], "planer/settings"),
     Icon::create("admin", "clickable"),
-    array('data-dialog' => 1)
+    ['data-dialog' => 1]
 );
 $actions->addLink(
     _("Drucken"),
-    PluginEngine::getURL($plugin, array(), "planer/print"),
+    PluginEngine::getURL($plugin, [], "planer/print"),
     Icon::create("print", "clickable"),
-    array('target' => "_blank")
+    ['target' => "_blank"]
 );
 Sidebar::Get()->addWidget($actions);

@@ -1,4 +1,6 @@
-<form action="<?= PluginEngine::getLink($plugin, array(), "planer/settings") ?>" method="post" class="default">
+<form action="<?= PluginEngine::getLink($plugin, [], "planer/settings") ?>"
+      method="post"
+      class="default">
 
     <fieldset>
         <legend>
@@ -42,7 +44,7 @@
         <label>
             <?= _("Tage verstecken") ?>
             <div>
-                <? $days = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS, true) : array() ?>
+                <? $days = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS, true) : [] ?>
                 <select class="multiselect" multiple name="hidden_days[]" data-multiple>
                     <option value="1"<?= in_array(1, $days) ? " selected" : "" ?>><?= _("Montag") ?></option>
                     <option value="2"<?= in_array(2, $days) ? " selected" : "" ?>><?= _("Dienstag") ?></option>
@@ -70,7 +72,7 @@
     </fieldset>
 
     <? $filter_names = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) : [] ?>
-    <? foreach (array('courses' => _("Veranstaltungen"), 'persons' => _("Personen"), 'resources' => _("Ressourcen")) as $type => $title) : ?>
+    <? foreach (['courses' => _("Veranstaltungen"), 'persons' => _("Personen"), 'resources' => _("Ressourcen")] as $type => $title) : ?>
         <fieldset>
             <legend>
                 <?= sprintf(_("Filter für %s"), $title) ?>
@@ -94,7 +96,7 @@
             <?= _("Terminfarben") ?>
         </legend>
 
-        <? foreach (array('courses' => _("Farben für Veranstaltungstermine"), 'persons' => _("Farben für Persontermine"), 'resources' => _("Farben für Ressourcenbuchungen")) as $type => $title) : ?>
+        <? foreach (['courses' => _("Farben für Veranstaltungstermine"), 'persons' => _("Farben für Persontermine"), 'resources' => _("Farben für Ressourcenbuchungen")] as $type => $title) : ?>
         <label>
             <?= $title ?>
             <select name="colorizer[<?= htmlReady($type) ?>]">

@@ -59,18 +59,18 @@ class PlanerController extends PluginController
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_DEFAULTDATE', $start + floor(($end - $start) / 2));
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_OBJECT_TYPE', $object_type);
 
-        $termine = array();
+        $termine = [];
         $query = new \Veranstaltungsplanung\SQLQuery(
             "termine",
             "veranstaltungsplanung_termine"
         );
 
-        $query->where("start", "`termine`.`end_time` >= :start", array(
+        $query->where("start", "`termine`.`end_time` >= :start", [
             'start' => $start
-        ));
-        $query->where("end", "`termine`.`date` <= :end", array(
+        ]);
+        $query->where("end", "`termine`.`date` <= :end", [
             'end' => $end
-        ));
+        ]);
         $query->groupBy("`termine`.`termin_id`");
 
         switch ($object_type) {
@@ -139,18 +139,18 @@ class PlanerController extends PluginController
             $editable = !Veranstaltungsplanung::isReadOnly()
                 && $GLOBALS['perm']->have_studip_perm("tutor", $termin['range_id'])
                 && !LockRules::Check($termin['range_id'], 'room_time');
-            $termine[] = array(
+            $termine[] = [
                 'id' => "termine_".$termin->getId(),
                 'title' => $title,
                 'editable' => $editable,
                 'start' => date("c", $termin['date']),
                 'end' => date("c", $termin['end_time']),
                 'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
-                'classNames' => array(
+                'classNames' => [
                     "course_".$termin['range_id'],
                     $termin['metadate_id'] ? "dateseries" : "singledate"
-                )
-            );
+                ]
+            ];
         }
 
         if ($object_type === "persons") {
@@ -158,12 +158,12 @@ class PlanerController extends PluginController
                 "event_data",
                 "private_termine"
             );
-            $query->where("start", "`event_data`.`start` >= :start", array(
+            $query->where("start", "`event_data`.`start` >= :start", [
                 'start' => $start
-            ));
-            $query->where("end", "`event_data`.`end` <= :end", array(
+            ]);
+            $query->where("end", "`event_data`.`end` <= :end", [
                 'end' => $end
-            ));
+            ]);
             $query->join(
                 "auth_user_md5",
                 "auth_user_md5",
@@ -178,15 +178,15 @@ class PlanerController extends PluginController
 
             foreach ($query->fetchAll("EventData") as $termin) {
 
-                $termine[] = array(
+                $termine[] = [
                     'id' => "eventdata_".$termin->getId(),
                     'title' => $termin->author['nachname'].": ".($termin['class'] === "PRIVATE" ? _("Privater Termin") : $termin['summary'].($termin['class'] === "CONFIDENTIAL" ? _(" (vertraulich)") : "")),
                     'start' => date("c", $termin['start']),
                     'end' => date("c", $termin['end']),
                     'editable' => false,
                     'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
-                    'classNames' => array("event_data")
-                );
+                    'classNames' => ["event_data"]
+                ];
             }
         }
         if ($object_type === "resources") {
@@ -206,12 +206,12 @@ class PlanerController extends PluginController
                     OR (`resource_request_appointments`.`request_id` = `resource_requests`.`id`)
                     OR (`termine`.`metadate_id` = `resource_requests`.`metadate_id`)"
             );
-            $query->where("start", "`termine`.`end_time` >= :start", array(
+            $query->where("start", "`termine`.`end_time` >= :start", [
                 'start' => $start
-            ));
-            $query->where("end", "`termine`.`date` <= :end", array(
+            ]);
+            $query->where("end", "`termine`.`date` <= :end", [
                 'end' => $end
-            ));
+            ]);
             $query->groupBy("`termine`.`termin_id`");
             foreach ($this->vpfilters['resources'] as $filter) {
                 foreach ($filter->getNames() as $index => $name) {
@@ -242,19 +242,19 @@ class PlanerController extends PluginController
                 $editable = !Veranstaltungsplanung::isReadOnly()
                     && $GLOBALS['perm']->have_studip_perm("tutor", $termin['range_id'])
                     && !LockRules::Check($termin['range_id'], 'room_time');
-                $termine[] = array(
+                $termine[] = [
                     'id' => "termine_".$termin->getId(),
                     'title' => $title,
                     'start' => date("c", $termin['date']),
                     'editable' => $editable,
                     'end' => date("c", $termin['end_time']),
                     'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
-                    'classNames' => array(
+                    'classNames' => [
                         "course_".$termin['range_id'],
                         $termin['metadate_id'] ? "dateseries" : "singledate",
                         "open_request"
-                    )
-                );
+                    ]
+                ];
             }
         }
 
@@ -308,23 +308,23 @@ class PlanerController extends PluginController
         $start = strtotime(Request::get("start"));
         $end = strtotime(Request::get("end"));
 
-        $output = array();
+        $output = [];
         $output['events'] = $this->getCollisions($termin, $start, $end);
 
         //original event, which gets displayed in yellow:
-        $output['events'][] = array(
+        $output['events'][] = [
             'id' => $termin['termin_id'],
             'start' => date("c", $termin['date']),
             'end' => date("c", $termin['end_time']),
             'conflict' => "original"
-        );
+        ];
         $this->render_json($output);
     }
 
     public function getCollisions($termin, $start, $end) {
-        $events = array();
-        $teacher_ids = array();
-        $termin_ids = array($termin->getId());
+        $events = [];
+        $teacher_ids = [];
+        $termin_ids = [$termin->getId()];
         foreach ($termin->dozenten as $dozent) {
             $teacher_ids[] = $dozent['user_id'];
         }
@@ -335,7 +335,7 @@ class PlanerController extends PluginController
                 WHERE Seminar_id = ?
                     AND status = 'dozent'
             ");
-            $statement->execute(array($termin['range_id']));
+            $statement->execute([$termin['range_id']]);
             $teacher_ids = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
 
             $statusgruppen_ids = $termin->statusgruppen->pluck("statusgruppe_id");
@@ -359,14 +359,14 @@ class PlanerController extends PluginController
                             OR (termin_related_groups.statusgruppe_id IS NULL AND termine.range_id = :seminar_id)
                         )
                 ");
-                $statement->execute(array(
+                $statement->execute([
                     'termin_id' => $termin->getId(),
                     'start' => $start,
                     'end' => $end,
                     'teacher_ids' => $teacher_ids,
                     'statusgruppen_ids' => $statusgruppen_ids,
                     'seminar_id' => $termin['range_id']
-                ));
+                ]);
             } else {
                 $statement = DBManager::get()->prepare("
                 SELECT termine.*
@@ -381,24 +381,24 @@ class PlanerController extends PluginController
                         OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
                     )
              ");
-                $statement->execute(array(
+                $statement->execute([
                     'termin_id' => $termin->getId(),
                     'start' => $start,
                     'end' => $end,
                     'teacher_ids' => $teacher_ids
-                ));
+                ]);
             }
 
             $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
             foreach ($termine_data as $data) {
                 $termin_ids[] = $data['termin_id'];
-                $events[] = array(
+                $events[] = [
                     'id' => $data['termin_id'],
                     'start' => date("c", $data['date']),
                     'end' => date("c", $data['end_time']),
                     'conflict' => "teacher_room",
                     'reason' => _("Lehrender hat dort keine Zeit")
-                );
+                ];
             }
         }
 
@@ -413,21 +413,21 @@ class PlanerController extends PluginController
                     AND resource_booking_intervals.`begin` <= :end
                     AND resource_booking_intervals.`end` >= :start
             ");
-            $statement->execute(array(
+            $statement->execute([
                 'termin_ids' => $termin_ids,
                 'start' => $start,
                 'end' => $end,
                 'resource_id' => $termin->room_booking['resource_id']
-            ));
+            ]);
             $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
             foreach ($termine_data as $data) {
                 $termin_ids[] = $data['termin_id'];
-                $events[] = array(
+                $events[] = [
                     'id' => $data['interval_id'],
                     'start' => date("c", $data['begin']),
                     'end' => date("c", $data['end']),
                     'reason' => _("Raum ist dort schon belegt.")
-                );
+                ];
             }
         }
 
@@ -442,10 +442,10 @@ class PlanerController extends PluginController
                 WHERE termine.termin_id NOT IN (:termin_ids)
                     AND my_termine.metadate_id = :metadate_id
             ");
-            $statement->execute(array(
+            $statement->execute([
                 'metadate_id' => $termin['metadate_id'],
                 'termin_ids' => $termin_ids
-            ));
+            ]);
         }
 
         return $events;

@@ -24,7 +24,7 @@ namespace Veranstaltungsplanung;
  */
 class SQLQuery {
 
-    public $settings = array();
+    public $settings = [];
     public $name = null;
     public $combine_where_statements_with = "AND";
 
@@ -47,7 +47,7 @@ class SQLQuery {
 
     public function select($select, $statement = null) {
         if (!is_array($select)) {
-            $select = $statement ? array($select => $statement) : array($select => "");
+            $select = $statement ? [$select => $statement] : [$select => ""];
         }
         foreach ($select as $alias => $statement) {
             $this->settings['select'][$alias] = $select;
@@ -71,7 +71,7 @@ class SQLQuery {
             $on = $table;
             $table = null;
         }
-        $this->settings['joins'][$alias] = array();
+        $this->settings['joins'][$alias] = [];
         if ($table) {
             $this->settings['joins'][$alias]['table'] = $table;
         }
@@ -91,7 +91,7 @@ class SQLQuery {
      * @param array $parameter
      * @return $this
      */
-    public function where($name, $condition = null, $parameter = array())
+    public function where($name, $condition = null, $parameter = [])
     {
         if ($condition === null) {
             unset($this->settings['where'][$name]);
@@ -174,7 +174,7 @@ class SQLQuery {
         if (!$sorm_class) {
             return $alldata;
         } else {
-            $objects = array();
+            $objects = [];
             foreach ($alldata as $data) {
                 $object = new $sorm_class();
                 $object->setData($data);
@@ -249,7 +249,7 @@ class SQLQuery {
     {
         $statement = \DBManager::get()->prepare("SHOW COLUMNS FROM `".$this->settings['table']."`");
         $statement->execute();
-        $pk = array();
+        $pk = [];
         while($rs = $statement->fetch(\PDO::FETCH_ASSOC)) {
             if ($rs['Key'] == 'PRI'){
                 $pk[] = "`".$this->settings['table']."`.`".$rs['Field']."`";

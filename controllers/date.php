@@ -181,7 +181,7 @@ class DateController extends PluginController
         $this->date = CourseDate::find($termin_id);
         $start = (int) (Request::get("start"));
         $end = (int) (Request::get("end"));
-        $output = array();
+        $output = [];
         $output['type'] = $type;
         if ($type === "termine" && $GLOBALS['perm']->have_studip_perm("dozent", $this->date['range_id'])) {
             if ($this->date['metadate_id']) {
@@ -306,10 +306,10 @@ class DateController extends PluginController
                                     range_id = :termin_id
                             ");
                         foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
-                            $statement->execute(array(
+                            $statement->execute([
                                 'user_id' => $user_id,
                                 'termin_id' => $date->getId()
-                            ));
+                            ]);
                         }
                     }
                     if (Request::option("resource_id")) {
@@ -347,10 +347,10 @@ class DateController extends PluginController
                                 range_id = :termin_id
                         ");
                     foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
-                        $statement->execute(array(
+                        $statement->execute([
                             'user_id' => $user_id,
                             'termin_id' => $this->date->getId()
-                        ));
+                        ]);
                     }
                 }
                 if (Request::option("resource_id")) {

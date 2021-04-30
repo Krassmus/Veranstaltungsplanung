@@ -9,7 +9,7 @@ class StudyAreaSelector extends SidebarWidget
         $this->title = _("Studienbereiche");
     }
 
-    public function render($variables = array())
+    public function render($variables = [])
     {
         $factory  = new Flexi_TemplateFactory(__DIR__ . '/../views/');
         $this->template = $factory->open('study_area_tree/widget.php');

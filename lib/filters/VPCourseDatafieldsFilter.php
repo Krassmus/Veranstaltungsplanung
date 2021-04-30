@@ -86,14 +86,14 @@ class VPCourseDatafieldsFilter implements VPFilter
             $query->join("df_".$datafield->getId(), "datafields_entries", "`df_".$datafield->getId()."`.`range_id` = `seminare`.`Seminar_id`");
             switch ($datafield['type']) {
                 case "bool":
-                    $query->where($index, "(`df_".$datafield->getId()."`.`datafield_id` = '".$datafield->getId()."' AND df_".$datafield->getId().".`content` = :df_".$datafield->getId()."_content)", array(
+                    $query->where($index, "(`df_".$datafield->getId()."`.`datafield_id` = '".$datafield->getId()."' AND df_".$datafield->getId().".`content` = :df_".$datafield->getId()."_content)", [
                         'df_'.$datafield->getId().'_content' => Request::get($index) === "ja" ? 1 : 0
-                    ));
+                    ]);
                     break;
                 default:
-                    $query->where($index, "(`df_".$datafield->getId()."`.`datafield_id` = '".$datafield->getId()."' AND df_".$datafield->getId().".`content` LIKE :df_".$datafield->getId()."_content)", array(
+                    $query->where($index, "(`df_".$datafield->getId()."`.`datafield_id` = '".$datafield->getId()."' AND df_".$datafield->getId().".`content` LIKE :df_".$datafield->getId()."_content)", [
                         'df_'.$datafield->getId().'_content' => '%'.Request::get($index).'%'
-                    ));
+                    ]);
             }
         }
     }

@@ -35,9 +35,9 @@ class VPCourseStudyareaFilter implements VPFilter
             //possibly add all sub-items
             $query->join("seminar_sem_tree", "`seminar_sem_tree`.`seminar_id` = `seminare`.`Seminar_id`");
             $query->join("sem_tree", "`sem_tree`.`sem_tree_id` = `seminar_sem_tree`.`sem_tree_id`");
-            $query->where("sem_tree_ids", "`seminar_sem_tree`.`sem_tree_id` IN (:sem_tree_ids) OR `sem_tree`.`parent_id` IN (:sem_tree_ids)", array(
+            $query->where("sem_tree_ids", "`seminar_sem_tree`.`sem_tree_id` IN (:sem_tree_ids) OR `sem_tree`.`parent_id` IN (:sem_tree_ids)", [
                 'sem_tree_ids' => $sem_tree_ids
-            ));
+            ]);
         }
     }
 }

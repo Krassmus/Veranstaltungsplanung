@@ -84,9 +84,9 @@ class VPCourseStgTeilFilter implements VPFilter
             $query->join("mvv_stgteilabschnitt", "`mvv_stgteilabschnitt`.`abschnitt_id` = `mvv_modulteil_stgteilabschnitt`.`abschnitt_id`");
             $query->join("mvv_stgteilversion", "`mvv_stgteilabschnitt`.`version_id` = `mvv_stgteilversion`.`version_id`");
 
-            $query->where("stgteil_id", "`mvv_stgteilversion`.`stgteil_id` = :stgteil_id", array(
+            $query->where("stgteil_id", "`mvv_stgteilversion`.`stgteil_id` = :stgteil_id", [
                 'stgteil_id' => Request::get("stgteil_id")
-            ));
+            ]);
         }
     }
 }

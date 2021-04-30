@@ -51,14 +51,14 @@ class VPResourceSeatFilter implements VPFilter
                     "`resource_properties`.`resource_id` = `resources`.`id` AND `resource_properties`.`property_id` = '" . $property_id . "'"
                 );
                 if ($seats[0]) {
-                    $query->where("resource_properties_seats_min", "(CAST(`resource_properties`.`state` AS UNSIGNED) >= :minseats)", array(
+                    $query->where("resource_properties_seats_min", "(CAST(`resource_properties`.`state` AS UNSIGNED) >= :minseats)", [
                         'minseats' => $seats[0]
-                    ));
+                    ]);
                 }
                 if ($seats[1]) {
-                    $query->where("resource_properties_seats_max", "(CAST(`resource_properties`.`state` AS UNSIGNED) <= :maxseats)", array(
+                    $query->where("resource_properties_seats_max", "(CAST(`resource_properties`.`state` AS UNSIGNED) <= :maxseats)", [
                         'maxseats' => $seats[1]
-                    ));
+                    ]);
                 }
             }
         }

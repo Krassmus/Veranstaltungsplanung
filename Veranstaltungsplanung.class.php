@@ -32,7 +32,7 @@ class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
 
     static public function getFilters()
     {
-        $vpfilters = array();
+        $vpfilters = [];
         foreach (get_declared_classes() as $class) {
             if (in_array('VPFilter', class_implements($class))) {
                 $vpfilters[$class::context()][] = new $class();
@@ -43,7 +43,7 @@ class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
 
     static public function getColorizers()
     {
-        $vpcolorizers = array();
+        $vpcolorizers = [];
         foreach (get_declared_classes() as $class) {
             if (in_array('VPColorizer', class_implements($class))) {
                 $vpcolorizers[$class] = new $class();
@@ -86,7 +86,7 @@ class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
         if ($GLOBALS['perm']->have_perm("dozent")) {
             $nav = new Navigation(
                 _("Planung"),
-                PluginEngine::getURL($this, array(), "planer/index")
+                PluginEngine::getURL($this, [], "planer/index")
             );
             Navigation::addItem("/browse/va_planer", $nav);
         }

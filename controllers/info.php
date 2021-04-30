@@ -9,7 +9,7 @@ class InfoController extends PluginController
             if (!$this->termin || !$GLOBALS['perm']->have_studip_perm("user", $this->termin['range_id'])) {
                 throw new AccessDeniedException();
             }
-            $this->redirect(URLHelper::getURL("dispatch.php/course/timesrooms/editDate/".$termin_id, array('cid' => $this->termin['range_id'])));
+            $this->redirect(URLHelper::getURL("dispatch.php/course/timesrooms/editDate/".$termin_id, ['cid' => $this->termin['range_id']]));
 
             /*PageLayout::setTitle($this->termin->course['name'] . ": " . date("d.m.Y H.i", $this->termin['date']));
             $this->seminar = new Seminar($this->termin['range_id']);

@@ -19,7 +19,7 @@ class Event {
   public $allDay; // a boolean
   public $start; // a DateTime
   public $end; // a DateTime, or null
-  public $properties = array(); // an array of other misc properties
+  public $properties = []; // an array of other misc properties
 
 
   // Constructs an Event object from the given array of key=>values.

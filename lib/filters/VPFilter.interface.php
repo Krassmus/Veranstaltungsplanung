@@ -40,10 +40,10 @@ interface VPFilter
     static public function context();
 
     /**
-     * Returns an associative array of names with their indexes like array('param1' => _("Freie Suche")).
+     * Returns an associative array of names with their indexes like ['param1' => _("Freie Suche")].
      * The name is a readable string for the configuration window. And the index will be used in
      * the other methods of this class as $index. $index must be unique over all VPFilters.
-     * @return associative array : like array('param1' => _("Freie Suche"))
+     * @return associative array : like ['param1' => _("Freie Suche")]
      */
     public function getNames();
 

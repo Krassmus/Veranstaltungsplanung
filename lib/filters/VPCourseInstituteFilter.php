@@ -52,9 +52,9 @@ class VPCourseInstituteFilter implements VPFilter
                 && (Request::get("institut_id") !== "all")
                 && !Request::get("stgteil_id")) {
             $query->join("Institute", "`Institute`.`Institut_id` = `seminare`.`Institut_id`");
-            $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", array(
+            $query->where("heimat_institut", "`seminare`.`Institut_id` = :institut_id OR `Institute`.`fakultaets_id` = :institut_id", [
                 'institut_id' => Request::get("institut_id")
-            ));
+            ]);
         }
     }
 }

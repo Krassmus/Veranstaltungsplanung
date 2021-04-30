@@ -53,9 +53,9 @@ class VPCourseVisibilityFilter implements VPFilter
     {
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_VISIBILITY', Request::get("visibility"));
         if (Request::get("visibility")) {
-            $query->where("visibility", "`seminare`.`visible` = :visible", array(
+            $query->where("visibility", "`seminare`.`visible` = :visible", [
                 'visible' => Request::get("visibility") === "visible" ? 1 : 0
-            ));
+            ]);
         }
     }
 }

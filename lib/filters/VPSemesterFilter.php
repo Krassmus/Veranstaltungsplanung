@@ -49,9 +49,9 @@ class VPSemesterFilter implements VPFilter
         $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', Request::get("semester_id"));
         if (Request::get("semester_id") && Request::get("semester_id") !== "all") {
             $semester = Semester::find(Request::get("semester_id"));
-            $query->where("semester_select", "`seminare`.`start_time` <= :semester_start AND (`seminare`.`duration_time` = -1 OR `seminare`.`duration_time` + `seminare`.`start_time` >= :semester_start OR (`seminare`.`duration_time` = '0' AND `seminare`.`start_time` = :semester_start))", array(
+            $query->where("semester_select", "`seminare`.`start_time` <= :semester_start AND (`seminare`.`duration_time` = -1 OR `seminare`.`duration_time` + `seminare`.`start_time` >= :semester_start OR (`seminare`.`duration_time` = '0' AND `seminare`.`start_time` = :semester_start))", [
                 'semester_start' => $semester['beginn']
-            ));
+            ]);
         }
     }
 }

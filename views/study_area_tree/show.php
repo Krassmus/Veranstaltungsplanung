@@ -46,18 +46,18 @@
 <ul class="clean selected">
     <li style="display: none;" class="template">
         <div style="float: right; cursor: pointer;">
-            <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen"))) ?>
+            <?= Icon::create("trash", "clickable")->asImg(20, ['class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen")]) ?>
         </div>
-        <?= Icon::create("checkbox-checked", "info")->asImg(20, array('class' => "text-bottom")) ?>
+        <?= Icon::create("checkbox-checked", "info")->asImg(20, ['class' => "text-bottom"]) ?>
         <input type="hidden" name="sem_tree_id[]" value="">
         <span class="name"></span>
     </li>
     <? foreach ($selected as $study_area) : ?>
         <li class="<?= $study_area->id ?>" data-id="<?= $study_area->id ?>">
             <div style="float: right; cursor: pointer;">
-                <?= Icon::create("trash", "clickable")->asImg(20, array('class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen"))) ?>
+                <?= Icon::create("trash", "clickable")->asImg(20, ['class' => "text-bottom", 'onClick' => "STUDIP.StudyareaTree.remove.call(this);", 'title' => _("Studienbereich abwählen")]) ?>
             </div>
-            <?= Icon::create("checkbox-checked", "info")->asImg(20, array('class' => "text-bottom")) ?>
+            <?= Icon::create("checkbox-checked", "info")->asImg(20, ['class' => "text-bottom"]) ?>
             <input type="hidden" name="sem_tree_id[]" value="<?= htmlReady($study_area->id) ?>">
             <span class="name"><?= htmlReady($study_area->getName()) ?></span>
         </li>

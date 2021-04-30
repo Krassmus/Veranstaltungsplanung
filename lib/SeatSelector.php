@@ -9,7 +9,7 @@ class SeatSelector extends SidebarWidget
         $this->title = _("Sitzplätze");
     }
 
-    public function render($variables = array())
+    public function render($variables = [])
     {
         $factory  = new Flexi_TemplateFactory(__DIR__ . '/../views/');
         $this->template = $factory->open('seatselector/widget.php');

@@ -30,8 +30,8 @@ class VPUserRoleFilter implements VPFilter
             true
         );
         $person_status->addLayoutCSSClass("persons");
-        $status_config = $GLOBALS['user']->cfg->ADMIN_USER_STATUS ? (array) unserialize($GLOBALS['user']->cfg->ADMIN_USER_STATUS) : array();
-        foreach (array("user", "autor", "tutor", "dozent", "admin", "root") as $status) {
+        $status_config = $GLOBALS['user']->cfg->ADMIN_USER_STATUS ? (array) unserialize($GLOBALS['user']->cfg->ADMIN_USER_STATUS) : [];
+        foreach (["user", "autor", "tutor", "dozent", "admin", "root"] as $status) {
             $person_status->addElement(new SelectElement(
                 $status,
                 ucfirst($status),
@@ -68,14 +68,14 @@ class VPUserRoleFilter implements VPFilter
                     );
                 }
                 if (count($person_roles)) {
-                    $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status) OR `roles_user`.`roleid` IN (:person_roles) ", array(
+                    $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status) OR `roles_user`.`roleid` IN (:person_roles) ", [
                         'person_status' => $person_status,
                         'person_roles' => $person_roles
-                    ));
+                    ]);
                 } else {
-                    $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status)", array(
+                    $query->where("person_status", "`auth_user_md5`.`perms` IN (:person_status)", [
                         'person_status' => $person_status
-                    ));
+                    ]);
                 }
             }
         }

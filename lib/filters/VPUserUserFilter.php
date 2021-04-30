@@ -39,9 +39,9 @@ class VPUserUserFilter implements VPFilter
     {
         $GLOBALS['user']->cfg->store('ADMIN_COURSES_USERSEARCH', Request::get("user_search"));
         if ($GLOBALS['user']->cfg->ADMIN_COURSES_USERSEARCH) {
-            $query->where("user_name", "CONCAT(`auth_user_md5`.`Vorname`, ' ', `auth_user_md5`.`Nachname`, ' ', `auth_user_md5`.`username`) LIKE :user_name", array(
+            $query->where("user_name", "CONCAT(`auth_user_md5`.`Vorname`, ' ', `auth_user_md5`.`Nachname`, ' ', `auth_user_md5`.`username`) LIKE :user_name", [
                 'user_name' => "%".$GLOBALS['user']->cfg->ADMIN_COURSES_USERSEARCH."%"
-            ));
+            ]);
         }
     }
 }

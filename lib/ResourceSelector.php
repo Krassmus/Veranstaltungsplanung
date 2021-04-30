@@ -9,7 +9,7 @@ class ResourceSelector extends SidebarWidget
         $this->title = _("Ressourcenbaum");
     }
 
-    public function render($variables = array())
+    public function render($variables = [])
     {
         $factory  = new Flexi_TemplateFactory(__DIR__ . '/../views/');
         $this->template = $factory->open('resource_tree/widget.php');

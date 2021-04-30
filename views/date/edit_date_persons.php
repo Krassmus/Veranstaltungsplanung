@@ -1,6 +1,6 @@
 <form class="default edit_date_persons"
       method="post"
-      action="<?= PluginEngine::getLink($plugin, array(), "date/save/".($date->getId() ? "termine_".$date->getId() : "")) ?>"
+      action="<?= PluginEngine::getLink($plugin, [], "date/save/".($date->getId() ? "termine_".$date->getId() : "")) ?>"
       data-dialog>
 
     <input type="hidden" name="object_type" value="<?= htmlReady(Request::get("object_type")) ?>">
