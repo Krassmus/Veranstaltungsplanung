@@ -1,7 +1,7 @@
-<div>
-    <?= _("Veranstaltung auswählen") ?>
-</div>
-<? if ($editable) : ?>
+<? if ($editable && count($courses) > 0) : ?>
+    <div>
+        <?= _("Veranstaltung auswählen") ?>
+    </div>
     <select name="data[range_id]"
             required
         <?= ($editable ? "" : "readonly") ?>
@@ -14,7 +14,10 @@
             </option>
         <? endforeach ?>
     </select>
-<? else : ?>
+<? elseif(count($courses) > 0) : ?>
+    <div>
+        <?= _("Veranstaltung") ?>
+    </div>
     <input type="text" readonly value="<?
     foreach ($courses as $course) {
         if ($course->getId() === $date['range_id']) {
@@ -23,6 +26,13 @@
         }
     }
     ?>">
+<? else : ?>
+    <div>
+        <?= _("Veranstaltung") ?>
+    </div>
+    <input type="text"
+           readonly
+           value="<?= htmlReady(Course::find($date['range_id'])->getFullName()) ?>">
 <? endif ?>
 
 <a href="<?= $date['range_id'] ? URLHelper::getLink("dispatch.php/course/timesrooms", ['cid' => $date['range_id']]) : "" ?>"

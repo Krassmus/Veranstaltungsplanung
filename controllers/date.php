@@ -83,15 +83,17 @@ class DateController extends PluginController
                         $this->selected_persons[] = $dozent['user_id'];
                     }
                 }
-                if (count($this->selected_persons)) {
+                if (Request::option("for_user_id")) {
                     $query = new \Veranstaltungsplanung\SQLQuery(
                         "seminare",
                         "veranstaltungsplanung_user_courses"
                     );
                     $query->join("seminar_user", "seminar_user", "seminare.Seminar_id = seminar_user.Seminar_id AND seminar_user.status = 'dozent'");
-                    foreach ($this->selected_persons as $user_id) {
-                        $query->where("seminar_user.user_id = '" . $user_id . "'");
-                    }
+                    $query->where(
+                        "dozent",
+                        "seminar_user.user_id = :dozent_id ",
+                        ['dozent_id' => Request::option("for_user_id")]
+                    );
                     $query->groupBy("`seminare`.`Seminar_id`");
                     $query->orderBy("`seminare`.name ASC");
 
@@ -123,7 +125,15 @@ class DateController extends PluginController
         $this->setAvailableRooms();
         $this->semester = Semester::findByTimestamp($this->date['date']);
         $this->in_semester = $this->semester && ($this->semester['vorles_beginn'] <= $this->date['date'] && $this->semester['vorles_ende'] >= $this->date['end_time']);
-        $this->render_template("date/edit_date_".Request::get("object_type"));
+
+        if ($this->date->isNew() && (Request::get("object_type") === "persons") && !Request::option("for_user_id")) {
+            $this->render_template("date/new_personsdate");
+        } elseif ($this->date->isNew() && Request::get("object_type") === "resources" && !Request::option("for_resource_id")) {
+            $this->render_template("date/new_resourcedate");
+        } else {
+            $this->render_template("date/edit_coursedate");
+        }
+
     }
 
     protected function setAvailableRooms()
