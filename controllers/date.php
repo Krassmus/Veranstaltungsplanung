@@ -118,7 +118,7 @@ class DateController extends PluginController
                         $filter->applyFilter($index, $query);
                     }
                 }
-                $this->resources = $query->fetchAll();
+                $this->resources = $query->fetchAll("Resource");
                 break;
         }
 
@@ -129,7 +129,7 @@ class DateController extends PluginController
         if ($this->date->isNew() && (Request::get("object_type") === "persons") && !Request::option("for_user_id")) {
             $this->render_template("date/new_personsdate");
         } elseif ($this->date->isNew() && Request::get("object_type") === "resources" && !Request::option("for_resource_id")) {
-            $this->render_template("date/new_resourcedate");
+            $this->render_template("date/new_resourcesdate");
         } else {
             $this->render_template("date/edit_coursedate");
         }

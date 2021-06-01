@@ -1,7 +1,7 @@
-<? if ($editable && count($courses) > 0) : ?>
-    <div>
-        <?= _("Veranstaltung auswählen") ?>
-    </div>
+<div>
+    <?= _("Veranstaltung auswählen") ?>
+</div>
+<? if ($editable && $courses && count($courses) > 0) : ?>
     <select name="data[range_id]"
             required
         <?= ($editable ? "" : "readonly") ?>
@@ -14,10 +14,7 @@
             </option>
         <? endforeach ?>
     </select>
-<? elseif(count($courses) > 0) : ?>
-    <div>
-        <?= _("Veranstaltung") ?>
-    </div>
+<? elseif ($courses && count($courses) > 0) : ?>
     <input type="text" readonly value="<?
     foreach ($courses as $course) {
         if ($course->getId() === $date['range_id']) {
@@ -26,10 +23,15 @@
         }
     }
     ?>">
+<? elseif ($editable) : ?>
+    <?
+    $seminar_search = QuickSearch::get('data[range_id]', new SeminarSearch());
+    if ($date['range_id']) {
+        $seminar_search->defaultValue($date['range_id'], Course::find($date['range_id'])->getFullName());
+    }
+    echo $seminar_search->render()
+    ?>
 <? else : ?>
-    <div>
-        <?= _("Veranstaltung") ?>
-    </div>
     <input type="text"
            readonly
            value="<?= htmlReady(Course::find($date['range_id'])->getFullName()) ?>">

@@ -3,6 +3,7 @@
 require_once __DIR__."/../lib/StudyAreaSelector.php";
 require_once __DIR__."/../lib/ResourceSelector.php";
 require_once __DIR__."/../lib/SeatSelector.php";
+require_once __DIR__."/../lib/ModulSelector.php";
 
 class PlanerController extends PluginController
 {
