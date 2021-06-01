@@ -13,7 +13,7 @@ class VPCourseModulFilter implements VPFilter
      */
     public function getNames()
     {
-        return ["modul_ids" => _("Module")];
+        return ["module_ids" => _("Module")];
     }
 
     /**
@@ -29,10 +29,10 @@ class VPCourseModulFilter implements VPFilter
 
     public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
-        $GLOBALS['user']->cfg->store('ADMIN_COURSES_MODUL', Request::get("modul_ids"));
+        $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_MODULES', Request::get("module_ids"));
 
-        if (Request::get("modul_ids")) {
-            $ids = explode(",", Request::get("modul_ids"));
+        if (Request::get("module_ids")) {
+            $ids = explode(",", Request::get("module_ids"));
 
             $query->join("mvv_lvgruppe_seminar", "`mvv_lvgruppe_seminar`.`seminar_id` = `seminare`.`Seminar_id`");
             $query->join("mvv_lvgruppe_modulteil", "`mvv_lvgruppe_modulteil`.`lvgruppe_id` = `mvv_lvgruppe_seminar`.`lvgruppe_id`");
@@ -55,6 +55,8 @@ class VPCourseModulFilter implements VPFilter
                     $modul_ids[] = $i;
                 }
             }
+
+
 
             if (count($modul_ids) + count($studiengangteilabschnitt_ids) + count($studiengangteil_ids) + count($studiengang_ids) > 0) {
 

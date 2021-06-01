@@ -33,7 +33,7 @@ class ModuleController extends PluginController
                     $areas[] = [
                         'id' => "studiengangteil_".$studiengangteil->id,
                         'name' => $studiengangteil->getDisplayName(),
-                        'children' => count($studiengang->versionen)
+                        'children' => count($studiengangteil->versionen)
                     ];
                 }
                 $this->areas = $areas;
@@ -47,11 +47,13 @@ class ModuleController extends PluginController
                 ];
                 $areas = [];
                 foreach ($parent->versionen as $studiengangteilversion) {
-                    $areas[] = [
-                        'id' => "studiengangteilversion_".$studiengangteilversion->id,
-                        'name' => $studiengangteilversion->getDisplayName(),
-                        'children' => count($studiengang->abschnitte)
-                    ];
+                    foreach ($studiengangteilversion->abschnitte as $abschnitt) {
+                        $areas[] = [
+                            'id' => "studiengangteilabschnitt_" . $abschnitt->id,
+                            'name' => $abschnitt->getDisplayName(),
+                            'children' => count($abschnitt->module)
+                        ];
+                    }
                 }
                 $this->areas = $areas;
                 break;
@@ -60,7 +62,7 @@ class ModuleController extends PluginController
                 $this->parent = [
                     'id' => $parent_id,
                     'name' => $parent->getDisplayName(),
-                    'parent_id' => 'studiengang_'.$parent->studiengang[0]->id
+                    'parent_id' => 'studiengangteil_'.$parent->version->studiengangteil->id
                 ];
                 $areas = [];
                 foreach ($parent->module as $module) {
@@ -71,7 +73,6 @@ class ModuleController extends PluginController
                     ];
                 }
                 $this->areas = $areas;
-                break;
                 break;
             case "modul":
                 break;

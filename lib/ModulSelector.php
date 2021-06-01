@@ -6,7 +6,7 @@ class ModulSelector extends SidebarWidget
     public function __construct()
     {
         $this->layout = "sidebar/widget-layout.php";
-        $this->title = _("Modul");
+        $this->title = _("Module");
     }
 
     public function render($variables = [])
@@ -15,7 +15,7 @@ class ModulSelector extends SidebarWidget
         $this->template = $factory->open('module/widget.php');
         $areas = [];
 
-        $selected_areas = explode(",", $GLOBALS['user']->cfg->ADMIN_COURSES_MODULE);
+        $selected_areas = explode(",", $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_MODULES);
 
         $studiengaenge = Studiengang::findBySQL("`stat` = 'genehmigt' ORDER BY name ASC");
 
