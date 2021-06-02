@@ -22,6 +22,7 @@ class ModuleController extends PluginController
         list($type, $id) = explode("_", $parent_id);
         switch ($type) {
             case "studiengang":
+                $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_MODULES_LAST_STG_ID', $id);
                 $parent = Studiengang::find($id);
                 $this->parent = [
                     'id' => $parent_id,
@@ -40,10 +41,21 @@ class ModuleController extends PluginController
                 break;
             case "studiengangteil":
                 $parent = StudiengangTeil::find($id);
+                $grandparent = null;
+                foreach ($parent->studiengang as $s) {
+                    if ($s->id === $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_MODULES_LAST_STG_ID) {
+                        $grandparent = $s;
+                        break;
+                    }
+                }
+                if (!$grandparent) {
+                    $grandparent = $parent->studiengang[0];
+                }
+
                 $this->parent = [
                     'id' => $parent_id,
                     'name' => $parent->getDisplayName(),
-                    'parent_id' => 'studiengang_'.$parent->studiengang[0]->id
+                    'parent_id' => 'studiengang_'.$grandparent->id
                 ];
                 $areas = [];
                 foreach ($parent->versionen as $studiengangteilversion) {
