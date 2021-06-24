@@ -66,10 +66,8 @@ class PlanerController extends PluginController
             "veranstaltungsplanung_termine"
         );
 
-        $query->where("start", "`termine`.`end_time` >= :start", [
-            'start' => $start
-        ]);
-        $query->where("end", "`termine`.`date` <= :end", [
+        $query->where("time", "(`termine`.`date` <= :start AND `termine`.`end_time` >= :start) OR (`termine`.`date` <= :end AND `termine`.`end_time` >= :end) OR (`termine`.`date` >= :start AND `termine`.`end_time` <= :end)", [
+            'start' => $start,
             'end' => $end
         ]);
         $query->groupBy("`termine`.`termin_id`");
@@ -159,10 +157,8 @@ class PlanerController extends PluginController
                 "event_data",
                 "private_termine"
             );
-            $query->where("start", "`event_data`.`start` >= :start", [
-                'start' => $start
-            ]);
-            $query->where("end", "`event_data`.`end` <= :end", [
+            $query->where("time", "(`event_data`.`start` <= :start AND `event_data`.`end` >= :start) OR (`event_data`.`start` <= :end AND `event_data`.`end` >= :end) OR (`event_data`.`start` >= :start AND `event_data`.`end` <= :end)", [
+                'start' => $start,
                 'end' => $end
             ]);
             $query->join(
@@ -207,10 +203,8 @@ class PlanerController extends PluginController
                     OR (`resource_request_appointments`.`request_id` = `resource_requests`.`id`)
                     OR (`termine`.`metadate_id` = `resource_requests`.`metadate_id`)"
             );
-            $query->where("start", "`termine`.`end_time` >= :start", [
-                'start' => $start
-            ]);
-            $query->where("end", "`termine`.`date` <= :end", [
+            $query->where("time", "(`termine`.`date` <= :start AND `termine`.`end_time` >= :start) OR (`termine`.`date` <= :end AND `termine`.`end_time` >= :end) OR (`termine`.`date` >= :start AND `termine`.`end_time` <= :end)", [
+                'start' => $start,
                 'end' => $end
             ]);
             $query->groupBy("`termine`.`termin_id`");
