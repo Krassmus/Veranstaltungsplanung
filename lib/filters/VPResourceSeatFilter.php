@@ -38,15 +38,14 @@ class VPResourceSeatFilter implements VPFilter
         $GLOBALS['user']->cfg->store('ADMIN_RESOURCES_SEATS', implode(",", $seats));
         if ($seats[0] || $seats[1]) {
             $statement = DBManager::get()->prepare("
-                SELECT property_id
-                FROM resource_property_definitions
-                WHERE name = 'seats'
+                SELECT `property_id`
+                FROM `resource_property_definitions`
+                WHERE `name` = 'seats'
             ");
             $statement->execute();
             $property_id = $statement->fetch(PDO::FETCH_COLUMN, 0);
             if ($property_id) {
                 $query->join(
-                    "resource_properties",
                     "resource_properties",
                     "`resource_properties`.`resource_id` = `resources`.`id` AND `resource_properties`.`property_id` = '" . $property_id . "'"
                 );

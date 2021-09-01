@@ -163,7 +163,7 @@ class SQLQuery {
         $sql = "SELECT `".$this->settings['table']."`.* ";
 
         foreach ((array) $this->settings['select'] as $alias => $statement) {
-            $sql .= $statement ? $statement." AS ".$alias." " : $alias;
+            $sql .= $statement ? "`".$statement."` AS `".$alias."` " : "`".$alias."`";
         }
 
         $sql .= $this->getQuery();
@@ -194,7 +194,7 @@ class SQLQuery {
         $sql = "SELECT `".$this->settings['table']."`.* ";
 
         foreach ((array) $this->settings['select'] as $alias => $statement) {
-            $sql .= $statement ? $statement." AS ".$alias." " : $alias;
+            $sql .= $statement ? "`".$statement."` AS `".$alias."` " : "`".$alias."`";
         }
 
         $sql .= $this->getQuery();
@@ -224,9 +224,9 @@ class SQLQuery {
         $sql = "FROM `".$this->settings['table']."` ";
         if ($this->settings['joins']) {
             foreach ($this->settings['joins'] as $alias => $joindata) {
-                $table = isset($joindata['table']) ? $joindata['table']." AS ".$alias : $alias;
+                $table = isset($joindata['table']) ? "`".$joindata['table']."` AS `".$alias."` " : $alias;
                 $on = isset($joindata['on']) ? " ON (".$joindata['on'].")" : "";
-                $sql .= " ".(isset($joindata['join']) ? $joindata['join'] : "INNER JOIN")." ".$table.$on." ";
+                $sql .= " ".(isset($joindata['join']) ? $joindata['join'] : "INNER JOIN")." `".$table."`".$on." ";
             }
         }
         if ($this->settings['where']) {

@@ -74,23 +74,23 @@ class PlanerController extends PluginController
 
         switch ($object_type) {
             case "courses":
-                $query->join("seminare", "`seminare`.`Seminar_id` = `termine`.`range_id`");
+                $query->join(
+                    "seminare",
+                    "`seminare`.`Seminar_id` = `termine`.`range_id`"
+                );
 
                 break;
             case "persons":
                 $query->join(
-                    "termin_related_persons",
                     "termin_related_persons",
                     "`termin_related_persons`.`range_id` = `termine`.`termin_id`",
                     "LEFT JOIN"
                 );
                 $query->join(
                     "seminar_user",
-                    "seminar_user",
-                    "`seminar_user`.`Seminar_id` = `termine`.`range_id` AND (termin_related_persons.user_id IS NULL OR termin_related_persons.user_id = seminar_user.user_id)"
+                    "`seminar_user`.`Seminar_id` = `termine`.`range_id` AND (`termin_related_persons`.`user_id` IS NULL OR `termin_related_persons`.`user_id` = `seminar_user`.`user_id`)"
                 );
                 $query->join(
-                    "auth_user_md5",
                     "auth_user_md5",
                     "`seminar_user`.`user_id` = `auth_user_md5`.`user_id`"
                 );
@@ -99,8 +99,14 @@ class PlanerController extends PluginController
                 //Zweiter Query für private Termine:
                 break;
             case "resources":
-                $query->join("resource_bookings", "`resource_bookings`.`range_id` = `termine`.`termin_id`");
-                $query->join("resources", "`resource_bookings`.`resource_id` = `resources`.`id`");
+                $query->join(
+                    "resource_bookings",
+                    "`resource_bookings`.`range_id` = `termine`.`termin_id`"
+                );
+                $query->join(
+                    "resources",
+                    "`resource_bookings`.`resource_id` = `resources`.`id`"
+                );
                 break;
         }
         $this->vpfilters = Veranstaltungsplanung::getFilters();
@@ -120,7 +126,9 @@ class PlanerController extends PluginController
             $colorizerindex = "standard";
         }
 
+
         foreach ($query->fetchAll("CourseDate") as $termin) {
+
             $title = (string) $termin->course['name'];
             if ($object_type === "resources") {
                 $title = $termin->room_booking->resource['name'].": ".$title;
@@ -163,7 +171,6 @@ class PlanerController extends PluginController
             ]);
             $query->join(
                 "auth_user_md5",
-                "auth_user_md5",
                 "`event_data`.`author_id` = `auth_user_md5`.`user_id`"
             );
             $query->groupBy("`event_data`.`event_id`");
@@ -193,15 +200,17 @@ class PlanerController extends PluginController
             );
             $query->join(
                 "resource_request_appointments",
-                "resource_request_appointments",
                 "`termine`.`termin_id` = `resource_request_appointments`.`appointment_id`"
             );
             $query->join(
                 "resource_requests",
-                "resource_requests",
                 "(`termine`.`termin_id` = `resource_requests`.`termin_id`)
                     OR (`resource_request_appointments`.`request_id` = `resource_requests`.`id`)
                     OR (`termine`.`metadate_id` = `resource_requests`.`metadate_id`)"
+            );
+            $query->join(
+                "resources",
+                "`resource_requests`.`resource_id` = `resources`.`id`"
             );
             $query->where("time", "(`termine`.`date` <= :start AND `termine`.`end_time` >= :start) OR (`termine`.`date` <= :end AND `termine`.`end_time` >= :end) OR (`termine`.`date` >= :start AND `termine`.`end_time` <= :end)", [
                 'start' => $start,
@@ -217,10 +226,10 @@ class PlanerController extends PluginController
             foreach ($query->fetchAll("CourseDate") as $termin) {
                 $title = (string) $termin->course['name'];
                 $statement = DBManager::get()->prepare("
-                    SELECT resources.*
-                    FROM resources
-                        INNER JOIN resource_requests ON (resource_requests.resource_id = resources.id)
-                        LEFT JOIN resource_request_appointments ON (`resource_request_appointments`.`request_id` = `resource_requests`.`id`)
+                    SELECT `resources`.*
+                    FROM `resources`
+                        INNER JOIN `resource_requests` ON (`resource_requests`.`resource_id` = `resources`.`id`)
+                        LEFT JOIN `resource_request_appointments` ON (`resource_request_appointments`.`request_id` = `resource_requests`.`id`)
                     WHERE `resource_requests`.`metadate_id` = :metadate_id
                         OR `resource_request_appointments`.`appointment_id` = :termin_id
                         OR `resource_requests`.`termin_id` = :termin_id
