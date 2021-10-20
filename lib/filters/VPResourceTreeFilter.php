@@ -38,14 +38,14 @@ class VPResourceTreeFilter implements VPFilter
                 "resources",
                 "`resources2`.`id` = `resources`.`parent_id`"
             );
-            $query->join(
+            /*$query->join(
                 "resources3",
                 "resources",
                 "`resources3`.`id` = `resources2`.`parent_id`"
             );
             $query->where("resource_ids", "(`resources`.`id` IN (:resource_ids) OR `resources2`.`id` IN (:resource_ids) OR `resources3`.`id` IN (:resource_ids))", [
                 'resource_ids' => $resource_ids
-            ]);
+            ]);*/
         }
     }
 }
