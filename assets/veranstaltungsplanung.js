@@ -149,6 +149,29 @@ STUDIP.Veranstaltungsplanung.getDozenten = function () {
         jQuery('.durchfuehrende_dozenten').html('');
     }
 };
+STUDIP.Veranstaltungsplanung.getThemen = function () {
+    if (this.value) {
+        let date_id = $(this).closest('form').data('date_id');
+        jQuery('.relevante_themen')
+            .load(
+                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/get_themen/' + this.value + '/' + date_id),
+                function () {
+                    jQuery('select[name=relevante_themen]').select2();
+                }
+            );
+    } else {
+        jQuery('.relevante_themen').html('');
+    }
+};
+STUDIP.Veranstaltungsplanung.addThema = function () {
+    if (this.value) {
+        let option = $('<option selected></option>');
+        option.attr('value', this.value);
+        option.text(this.value);
+        jQuery('.relevante_themen').append(option);
+        $(this).val('');
+    }
+};
 
 jQuery(function () {
     //extract fragment:

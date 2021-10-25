@@ -352,10 +352,10 @@ class DateController extends PluginController
                 });
                 if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
                     $statement = DBManager::get()->prepare("
-                            INSERT IGNORE INTO termin_related_persons
-                            SET user_id = :user_id,
-                                range_id = :termin_id
-                        ");
+                        INSERT IGNORE INTO termin_related_persons
+                        SET user_id = :user_id,
+                            range_id = :termin_id
+                    ");
                     foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
                         $statement->execute([
                             'user_id' => $user_id,
@@ -372,6 +372,31 @@ class DateController extends PluginController
                     $this->date->room_booking->delete();
                 }
 
+            }
+
+            $topics = Request::getArray('topics');
+            foreach ($this->date->topics as $t) {
+                if (!in_array($t->getId(), $topics)) {
+                    $this->date->removeTopic($t->getId());
+                }
+            }
+            foreach ($topics as $topicdata) {
+                if (preg_match('/^[a-f0-9]{32}$/', $topicdata)) {
+                    //this is an md5 hash:
+                    $this->date->addTopic($topicdata);
+                } else {
+                    $topic = CourseTopic::findOneBySQL("`seminar_id` = :course_id AND `title` = :title", [
+                        'course_id' => $this->date['range_id'],
+                        'title' => $topicdata
+                    ]);
+                    if (!$topic) {
+                        $topic = new CourseTopic();
+                        $topic['seminar_id'] = $this->date['range_id'];
+                        $topic['title'] = $topicdata;
+                        $topic->store();
+                    }
+                    $this->date->addTopic($topic->getId());
+                }
             }
             //Dialog schließen und Fullcalendar neu laden:
             $this->response->add_header("X-Dialog-Execute", "STUDIP.Veranstaltungsplanung.reloadCalendar");
