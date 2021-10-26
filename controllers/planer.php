@@ -498,9 +498,17 @@ class PlanerController extends PluginController
     }
 
 
-    public function get_dozenten_action($seminar_id)
+    public function get_dozenten_action($seminar_id, $date_id)
     {
+        $this->date = new CourseDate($date_id);
         $this->dozenten = Course::find($seminar_id)->members->filter(function ($m) { return $m['status'] === "dozent"; });
+    }
+
+
+    public function get_statusgruppen_action($seminar_id, $date_id)
+    {
+        $this->date = new CourseDate($date_id);
+        $this->statusgruppen = Course::find($seminar_id)->statusgruppen;
     }
 
 

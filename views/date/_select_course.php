@@ -6,7 +6,7 @@
             required
         <?= ($editable ? "" : "readonly") ?>
             style="display: inline-block;"
-            onChange="STUDIP.Veranstaltungsplanung.getDozenten.call(this); STUDIP.Veranstaltungsplanung.getThemen.call(this); $(this).closest('label').find('.planer_course_link').attr('href', this.value ? STUDIP.URLHelper.getURL($(this).closest('label').find('.planer_course_link').data('base-url'), {'cid': this.value}) : '');">
+            onChange="STUDIP.Veranstaltungsplanung.getDozenten.call(this); STUDIP.Veranstaltungsplanung.getStatusgruppen.call(this); STUDIP.Veranstaltungsplanung.getThemen.call(this); $(this).closest('label').find('.planer_course_link').attr('href', this.value ? STUDIP.URLHelper.getURL($(this).closest('label').find('.planer_course_link').data('base-url'), {'cid': this.value}) : '');">
         <option value=""> - </option>
         <? foreach ($courses as $course) : ?>
             <option value="<?= htmlReady($course->getId()) ?>"<?= $course->getId() === $date['range_id'] ? " selected" : "" ?>>

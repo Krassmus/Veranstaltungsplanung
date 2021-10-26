@@ -374,6 +374,28 @@ class DateController extends PluginController
 
             }
 
+            $statusgruppen_ids = Request::getArray('statusgruppen');
+            $delete = DBManager::get()->prepare('
+                DELETE FROM `termin_related_groups`
+                WHERE `termin_id` = :termin_id
+                    AND `statusgruppe_id` NOT IN (:statusgruppen_ids)
+            ');
+            $delete->execute([
+                'termin_id' => $this->date->getId(),
+                'statusgruppen_ids' => $statusgruppen_ids
+            ]);
+            foreach ($statusgruppen_ids as $statusgruppen_id) {
+                $insert = DBManager::get()->prepare('
+                    INSERT IGNORE INTO `termin_related_groups`
+                    SET termin_id = :termin_id,
+                        `statusgruppe_id` = :statusgruppen_id
+                ');
+                $insert->execute([
+                    'termin_id' => $this->date->getId(),
+                    'statusgruppen_id' => $statusgruppen_id
+                ]);
+            }
+
             $topics = Request::getArray('topics');
             foreach ($this->date->topics as $t) {
                 if (!in_array($t->getId(), $topics)) {

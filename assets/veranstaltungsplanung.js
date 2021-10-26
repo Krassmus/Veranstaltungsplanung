@@ -138,11 +138,26 @@ STUDIP.Veranstaltungsplanung.getCurrentParameters = function () {
 
 STUDIP.Veranstaltungsplanung.getDozenten = function () {
     if (this.value) {
+        let date_id = $(this).closest('form').data('date_id');
         jQuery('.durchfuehrende_dozenten')
             .load(
-                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/get_dozenten/' + this.value),
+                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/get_dozenten/' + this.value + '/' + date_id),
                 function () {
-                    jQuery('select[name=durchfuehrende_dozenten]').select2();
+                    jQuery('.durchfuehrende_dozenten_select').select2();
+                }
+            );
+    } else {
+        jQuery('.durchfuehrende_dozenten').html('');
+    }
+};
+STUDIP.Veranstaltungsplanung.getStatusgruppen = function () {
+    if (this.value) {
+        let date_id = $(this).closest('form').data('date_id');
+        jQuery('.statusgruppen')
+            .load(
+                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/get_statusgruppen/' + this.value + '/' + date_id),
+                function () {
+                    jQuery('.statusgruppen_select').select2();
                 }
             );
     } else {

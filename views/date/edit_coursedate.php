@@ -98,7 +98,15 @@
         </label>
 
         <div class="durchfuehrende_dozenten">
+            <? if ($date->course) : ?>
+                <?= $this->render_partial('planer/get_dozenten', ['date' => $date, 'dozenten' => $date->course->members->filter(function ($m) { return $m['status'] === "dozent"; })]) ?>
+            <? endif ?>
+        </div>
 
+        <div class="statusgruppen">
+            <? if ($date->course) : ?>
+                <?= $this->render_partial('planer/get_statusgruppen', ['date' => $date, 'statusgruppen' => $date->course->statusgruppen]) ?>
+            <? endif ?>
         </div>
     </fieldset>
 
@@ -126,7 +134,7 @@
         </div>
         <script>
             $(function () {
-                $('.relevante_themen').select2();
+                $('.durchfuehrende_dozenten_select, .statusgruppen_select, .relevante_themen').select2();
             });
         </script>
 
