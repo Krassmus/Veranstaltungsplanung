@@ -6,11 +6,13 @@ foreach ($date->dozenten as $user) {
 ?>
 <label>
     <?= _("Durchführende Lehrende") ?>
-    <select multiple class="durchfuehrende_dozenten_select" name="durchfuehrende_dozenten[]">
-        <? foreach ($dozenten as $dozent) : ?>
-        <option value="<?= htmlReady($dozent['user_id']) ?>"<?= in_array($dozent['user_id'], $teacher_ids) ? ' selected' : '' ?>>
-            <?= htmlReady($dozent['title_front']." ".$dozent['vorname']." ".$dozent['nachname']) ?>
-        </option>
-        <? endforeach ?>
-    </select>
+    <div>
+        <select multiple class="durchfuehrende_dozenten_select" name="durchfuehrende_dozenten[]">
+            <? foreach ($dozenten as $dozent) : ?>
+            <option value="<?= htmlReady($dozent['user_id']) ?>"<?= in_array($dozent['user_id'], $teacher_ids) ? ' selected' : '' ?>>
+                <?= htmlReady($dozent['title_front']." ".$dozent['vorname']." ".$dozent['nachname']) ?>
+            </option>
+            <? endforeach ?>
+        </select>
+    </div>
 </label>
