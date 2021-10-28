@@ -29,27 +29,6 @@
             <?= $this->render_partial("date/_select_course") ?>
         </label>
 
-        <label>
-            <?= _("Art") ?>
-            <? if ($editable) : ?>
-                <select name="data[date_typ]" <?= ($editable ? "" : "readonly") ?>>
-                    <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
-                        <option <?= $date['date_typ'] == $key ? 'selected' : '' ?>
-                                value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>
-                    <? endforeach ?>
-                </select>
-            <? else : ?>
-                <input type="text" readonly value="<?
-                foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) {
-                    if ($date['date_typ'] == $key) {
-                        echo htmlReady($val['name']);
-                        break;
-                    }
-                }
-                ?>">
-            <? endif ?>
-        </label>
-
         <? if ($in_semester && !Config::get()->VPLANER_DISABLE_METADATES) : ?>
             <label>
                 <? if ($editable) : ?>
@@ -63,82 +42,151 @@
             <input type="hidden" name="metadate" value="<?= $date['metadate_id'] ? 1 : 0 ?>">
         <? endif ?>
 
-        <? if (Config::get()->RESOURCES_ENABLE
-            && ($selectable_rooms || $room_search)): ?>
-            <label>
-                <?= _('Raum') ?>
-                <? if ($room_search): ?>
-                    <?= $room_search->render() ?>
-                <? else: ?>
-                    <select name="resource_id" <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
-                        <option value=""><?= _('<em>Keinen</em> Raum buchen') ?></option>
-                        <? foreach ($selectable_rooms as $room): ?>
-                            <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
-                                <?= htmlReady($room->name) ?>
-                                <? if ($room->seats > 1) : ?>
-                                    <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
+        <table class="multi_edit_table">
+            <thead>
+                <tr>
+                    <th><?= _('Eigenschaft des Einzeltermins') ?></th>
+                    <th><?= _('Eigenschaft aller Termine') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <label>
+                            <?= _("Art") ?>
+                            <? if ($editable) : ?>
+                                <select name="data[date_typ]" <?= ($editable ? "" : "readonly") ?>>
+                                    <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
+                                        <option <?= $date['date_typ'] == $key ? 'selected' : '' ?>
+                                            value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>
+                                    <? endforeach ?>
+                                </select>
+                            <? else : ?>
+                                <input type="text" readonly value="<?
+                                foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) {
+                                    if ($date['date_typ'] == $key) {
+                                        echo htmlReady($val['name']);
+                                        break;
+                                    }
+                                }
+                                ?>">
+                            <? endif ?>
+                        </label>
+                    </td>
+                    <td>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <? if (Config::get()->RESOURCES_ENABLE
+                            && ($selectable_rooms || $room_search)): ?>
+                            <label>
+                                <?= _('Raum') ?>
+                                <? if ($room_search): ?>
+                                    <?= $room_search->render() ?>
+                                <? else: ?>
+                                    <select name="resource_id" <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
+                                        <option value=""><?= _('<em>Keinen</em> Raum buchen') ?></option>
+                                        <? foreach ($selectable_rooms as $room): ?>
+                                            <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
+                                                <?= htmlReady($room->name) ?>
+                                                <? if ($room->seats > 1) : ?>
+                                                    <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
+                                                <? endif ?>
+                                            </option>
+                                        <? endforeach ?>
+                                    </select>
                                 <? endif ?>
-                            </option>
-                        <? endforeach ?>
-                    </select>
-                <? endif ?>
-            </label>
-        <? endif ?>
+                            </label>
+                        <? endif ?>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>
+                            <?= _('Freie Ortsangabe') ?>
+                            <input type="text"
+                                   name="data[raum]"
+                                <?= ($editable ? "" : "readonly") ?>
+                                   value="<?= htmlReady($date['raum']) ?>"
+                                   maxlength="255">
+                            <? if (Config::get()->RESOURCES_ENABLE) : ?>
+                                <small style="display: block"><?= _('(führt <em>nicht</em> zu einer Raumbuchung)') ?></small>
+                            <? endif ?>
+                        </label>
+                    </td>
+                    <td>
 
-        <label>
-            <?= _('Freie Ortsangabe') ?>
-            <input type="text"
-                   name="data[raum]"
-                   <?= ($editable ? "" : "readonly") ?>
-                   value="<?= htmlReady($date['raum']) ?>"
-                   maxlength="255">
-            <? if (Config::get()->RESOURCES_ENABLE) : ?>
-                <small style="display: block"><?= _('(führt <em>nicht</em> zu einer Raumbuchung)') ?></small>
-            <? endif ?>
-        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="durchfuehrende_dozenten">
+                            <? if ($date->course) : ?>
+                                <?= $this->render_partial('planer/get_dozenten', ['date' => $date, 'dozenten' => $date->course->members->filter(function ($m) { return $m['status'] === "dozent"; })]) ?>
+                            <? endif ?>
+                        </div>
+                    </td>
+                    <td>
 
-        <div class="durchfuehrende_dozenten">
-            <? if ($date->course) : ?>
-                <?= $this->render_partial('planer/get_dozenten', ['date' => $date, 'dozenten' => $date->course->members->filter(function ($m) { return $m['status'] === "dozent"; })]) ?>
-            <? endif ?>
-        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="statusgruppen">
+                            <? if ($date->course) : ?>
+                                <?= $this->render_partial('planer/get_statusgruppen', ['date' => $date, 'statusgruppen' => $date->course->statusgruppen]) ?>
+                            <? endif ?>
+                        </div>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>
+                            <?= _('Themen') ?>
+                            <div>
+                                <select name="topics[]" multiple class="relevante_themen">
+                                    <? if ($date->course) : ?>
+                                        <?= $this->render_partial('planer/get_themen', ['date' => $date, 'themen' => $date->course->topics]) ?>
+                                    <? endif ?>
+                                </select>
+                            </div>
+                        </label>
 
-        <div class="statusgruppen">
-            <? if ($date->course) : ?>
-                <?= $this->render_partial('planer/get_statusgruppen', ['date' => $date, 'statusgruppen' => $date->course->statusgruppen]) ?>
-            <? endif ?>
-        </div>
+                        <div>
+                            <input type="text"
+                                   id="add_topic"
+                                   placeholder="<?= _('neues Thema eingeben ...') ?>"
+                                   style="max-width: 200px;"
+                                   onkeydown="if (event.key == 'Enter') { STUDIP.Veranstaltungsplanung.addThema.call(this); return false; }">
+                            <?= \Studip\LinkButton::create(_('Thema hinzufügen'), '#', ['onclick' => "STUDIP.Veranstaltungsplanung.addThema.call(window.document.getElementById('add_topic'));"]) ?>
+                        </div>
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+
+
+
+
+
+
+
+
     </fieldset>
 
-    <fieldset>
-        <legend><?= _('Lehre') ?></legend>
-
-        <label>
-            <?= _('Themen') ?>
-            <div>
-                <select name="topics[]" multiple class="relevante_themen">
-                    <? if ($date->course) : ?>
-                        <?= $this->render_partial('planer/get_themen', ['date' => $date, 'themen' => $date->course->topics]) ?>
-                    <? endif ?>
-                </select>
-            </div>
-        </label>
-
-        <div>
-            <input type="text"
-                   id="add_topic"
-                   placeholder="<?= _('neues Thema eingeben ...') ?>"
-                   style="max-width: 200px;"
-                   onkeydown="if (event.key == 'Enter') { STUDIP.Veranstaltungsplanung.addThema.call(this); return false; }">
-            <?= \Studip\LinkButton::create(_('Thema hinzufügen'), '#', ['onclick' => "STUDIP.Veranstaltungsplanung.addThema.call(window.document.getElementById('add_topic'));"]) ?>
-        </div>
-        <script>
-            $(function () {
-                $('.durchfuehrende_dozenten_select, .statusgruppen_select, .relevante_themen').select2();
-            });
-        </script>
-
-    </fieldset>
+    <script>
+        $(function () {
+            $('.durchfuehrende_dozenten_select, .statusgruppen_select, .relevante_themen').select2();
+        });
+    </script>
 
     <div data-dialog-button>
         <? if ($editable) : ?>
