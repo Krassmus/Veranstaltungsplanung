@@ -8,31 +8,36 @@
 
     <fieldset>
         <legend><?= _('Organisation') ?></legend>
+
+        <label>
+            <?= $this->render_partial("date/_select_course") ?>
+        </label>
+
         <div class="hgroup">
             <label>
                 <?= _("Beginn") ?>
                 <input type="text"
-                       <?= ($editable ? "data-datetime-picker" : "readonly") ?>
+                    <?= ($editable ? "data-datetime-picker" : "readonly") ?>
                        name="data[date]"
                        value="<?= date("d.m.Y H:i", $date['date']) ?>">
             </label>
             <label>
                 <?= _("Ende") ?>
                 <input type="text"
-                       <?= ($editable ? "data-datetime-picker" : "readonly") ?>
+                    <?= ($editable ? "data-datetime-picker" : "readonly") ?>
                        name="data[end_time]"
                        value="<?= date("d.m.Y H:i", $date['end_time']) ?>">
             </label>
         </div>
 
-        <label>
-            <?= $this->render_partial("date/_select_course") ?>
-        </label>
-
         <? if ($in_semester && !Config::get()->VPLANER_DISABLE_METADATES) : ?>
             <label>
                 <? if ($editable) : ?>
-                    <input type="checkbox" <?= ($editable ? "" : "readonly") ?> name="metadate" value="1"<?= $date['metadate_id'] ? " checked" : "" ?>>
+                    <input type="checkbox"
+                           <?= ($editable ? "" : "readonly") ?>
+                           name="metadate"
+                           onchange="$('#vplaner_editdate').toggleClass('metadate').toggleClass('singledate')"
+                           value="1"<?= $date['metadate_id'] ? " checked" : "" ?>>
                 <? else : ?>
                     <?= Icon::create("checkbox-" .($date['metadate_id'] ? "" : "un"). "checked", "info")->asImg(20, ['class' => "text-bottom"]) ?>
                 <? endif ?>
@@ -42,20 +47,28 @@
             <input type="hidden" name="metadate" value="<?= $date['metadate_id'] ? 1 : 0 ?>">
         <? endif ?>
 
+    </fieldset>
+    <fieldset id="vplaner_editdate" class="<?= $date['metadate_id'] ? 'metadate' : 'singledate' ?>">
+        <legend><?= _('Termin(e) bearbeiten') ?></legend>
+
         <table class="multi_edit_table">
             <thead>
                 <tr>
-                    <th><?= _('Eigenschaft des Einzeltermins') ?></th>
-                    <th><?= _('Eigenschaft aller Termine') ?></th>
+                    <th width="50%"><?= _('Eigenschaft des Einzeltermins') ?></th>
+                    <th width="50%"><?= _('Eigenschaft aller Termine') ?></th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>
                         <label>
-                            <?= _("Art") ?>
+                            <?= _("Termintyp") ?>
                             <? if ($editable) : ?>
-                                <select name="data[date_typ]" <?= ($editable ? "" : "readonly") ?>>
+                                <select id="vplaner_date_type"
+                                        name="data[date_typ]"
+                                        onchange="$('#vplaner_date_type_cycledate').val('')"
+                                        <?= ($editable ? "" : "readonly") ?>>
+
                                     <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
                                         <option <?= $date['date_typ'] == $key ? 'selected' : '' ?>
                                             value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>
@@ -74,35 +87,90 @@
                         </label>
                     </td>
                     <td>
-
+                        <label>
+                            <?= _("Termintyp aller Termine") ?>
+                            <?
+                            $difference = false;
+                            if ($date->cycle->dates) {
+                                foreach ((array)$date->cycle->dates->toArray() as $otherdate) {
+                                    if ($otherdate['date_typ'] !== $date['date_typ']) {
+                                        $difference = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            ?>
+                            <select name="date_typ_cycledate"
+                                    id="vplaner_date_type_cycledate"
+                                    onchange="if ($(this).val()) {$('#vplaner_date_type').val($(this).val()); }"
+                                    <?= ($editable ? "" : "readonly") ?>>
+                                <option value=""><?= $difference ? _('Unterschiedliche Werte') : '' ?></option>
+                                <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
+                                    <option <?= !$difference && ($key == $date['date_typ']) ? 'selected' : '' ?>
+                                        value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>
+                                <? endforeach ?>
+                            </select>
+                        </label>
                     </td>
                 </tr>
+                <? if (Config::get()->RESOURCES_ENABLE
+                    && ($selectable_rooms || $room_search)): ?>
                 <tr>
                     <td>
-                        <? if (Config::get()->RESOURCES_ENABLE
-                            && ($selectable_rooms || $room_search)): ?>
-                            <label>
-                                <?= _('Raum') ?>
-                                <? if ($room_search): ?>
-                                    <?= $room_search->render() ?>
-                                <? else: ?>
-                                    <select name="resource_id" <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
-                                        <option value=""><?= _('<em>Keinen</em> Raum buchen') ?></option>
-                                        <? foreach ($selectable_rooms as $room): ?>
-                                            <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
-                                                <?= htmlReady($room->name) ?>
-                                                <? if ($room->seats > 1) : ?>
-                                                    <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
-                                                <? endif ?>
-                                            </option>
-                                        <? endforeach ?>
-                                    </select>
-                                <? endif ?>
-                            </label>
-                        <? endif ?>
+                        <label>
+                            <?= _('Raum') ?>
+                            <? if ($room_search): ?>
+                                <?= $room_search->render() ?>
+                            <? else: ?>
+                                <select name="resource_id" <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
+                                    <option value=""><?= _('<em>Keinen</em> Raum buchen') ?></option>
+                                    <? foreach ($selectable_rooms as $room): ?>
+                                        <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
+                                            <?= htmlReady($room->name) ?>
+                                            <? if ($room->seats > 1) : ?>
+                                                <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
+                                            <? endif ?>
+                                        </option>
+                                    <? endforeach ?>
+                                </select>
+                            <? endif ?>
+                        </label>
                     </td>
-                    <td></td>
+                    <td>
+                        <label>
+                            <?
+                            $difference = false;
+                            if ($date->cycle->dates) {
+                                foreach ((array)$date->cycle->dates->toArray() as $otherdate) {
+                                    $otherdate = CourseDate::buildExisting($otherdate);
+                                    if ($otherdate->room_booking['resource_id'] !== $date->room_booking['resource_id']) {
+                                        $difference = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            ?>
+                            <?= _('Raum') ?>
+                            <? if ($room_search): ?>
+                                <?= $room_search->render() ?>
+                            <? else: ?>
+                                <select name="resource_id_cycledate" <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
+                                    <option value=""><?= $difference ? _('Unterschiedliche Werte') : '' ?></option>
+                                    <option value="no"><?= _('<em>Keinen</em> Raum buchen') ?></option>
+                                    <? foreach ($selectable_rooms as $room): ?>
+                                        <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
+                                            <?= htmlReady($room->name) ?>
+                                            <? if ($room->seats > 1) : ?>
+                                                <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
+                                            <? endif ?>
+                                        </option>
+                                    <? endforeach ?>
+                                </select>
+                            <? endif ?>
+                        </label>
+                    </td>
                 </tr>
+                <? endif ?>
                 <tr>
                     <td>
                         <label>
@@ -141,7 +209,13 @@
                             <? endif ?>
                         </div>
                     </td>
-                    <td></td>
+                    <td>
+                        <div class="statusgruppen">
+                            <? if ($date->course) : ?>
+                                <?= $this->render_partial('planer/get_statusgruppen', ['date' => $date, 'statusgruppen' => $date->course->statusgruppen]) ?>
+                            <? endif ?>
+                        </div>
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -165,20 +239,12 @@
                             <?= \Studip\LinkButton::create(_('Thema hinzufügen'), '#', ['onclick' => "STUDIP.Veranstaltungsplanung.addThema.call(window.document.getElementById('add_topic'));"]) ?>
                         </div>
                     </td>
-                    <td></td>
+                    <td>
+
+                    </td>
                 </tr>
             </tbody>
         </table>
-
-
-
-
-
-
-
-
-
-
 
     </fieldset>
 

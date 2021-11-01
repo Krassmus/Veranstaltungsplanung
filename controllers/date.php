@@ -239,11 +239,14 @@ class DateController extends PluginController
             $date_id = substr($date_id, 8);
         }
         $this->date = new CourseDate($date_id);
+        $was_new = $this->date->isNew();
+        $had_metadate = $this->date['metadate_id'];
         $this->editable = $this->date->isNew()
             || (!Veranstaltungsplanung::isReadOnly()
                 && $GLOBALS['perm']->have_studip_perm("tutor", $this->date['range_id'])
                 && !LockRules::Check($this->date['range_id'], 'room_time'));
         if ($this->editable) {
+
             if (Request::int("start")) {
                 $this->date['date'] = Request::int("start");
             }
@@ -286,6 +289,7 @@ class DateController extends PluginController
                 $this->render_nothing();
                 return;
             }
+
             //Add course date or booking of resource or personal event?
             if (Request::option("metadate")) {
                 if ($this->date['metadate_id']) {
@@ -298,17 +302,29 @@ class DateController extends PluginController
                 $cycledate['start_time'] = date("H:i:s", $this->date['date']);
                 $cycledate['end_time'] = date("H:i:s", $this->date['end_time']);
                 $cycledate['weekday'] = date("w", $this->date['date']) > 0 ? date("w", $this->date['date']) : 7;
-                $cycledate['cycle'] = 0;
-                $cycledate->store();
+                $cycledate['cycle'] = 0; //jede Woche
+                $success = $cycledate->store();
                 $dozenten = Course::find($this->date['range_id'])->members->filter(function ($m) {
                     return $m['status'] === "dozent";
                 });
                 foreach ($cycledate->getAllDates() as $date) {
-                    $date['date_typ'] = $this->date['date_typ'];
+
+                    if (Request::get('date_typ_cycledate')) {
+                        $date['date_typ'] = Request::get('date_typ_cycledate');
+                    } elseif ($was_new) {
+                        $date['date_typ'] = $this->date['date_typ'];
+                    }
+
                     if (!Request::option("resource_id")) {
                         $date['raum'] = $this->date['raum'];
                     }
                     $date->store();
+
+                    if (($date['date'] == $this->date['date']) && ($date['end_time'] == $this->date['end_time']) && ($date->getId() !== $this->date->getId())) {
+                        $this->date->delete();
+                        $this->date = $date;
+                    }
+
                     if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
                         $statement = DBManager::get()->prepare("
                                 INSERT IGNORE INTO termin_related_persons
@@ -331,48 +347,54 @@ class DateController extends PluginController
                         $date->room_booking->delete();
                     }
                 }
-            } else {
-                //Unregelmäßiger Termin
-                if (!$this->date->isNew() && $this->date['metadate_id']) {
-                    //Regelmäßigen Termin löschen:
-                    $data = $this->date->toRawArray();
-                    $this->date->cycle->delete();
-                    unset($data['metadate_id']);
-                    $this->date = new CourseDate();
-                    $this->date->setData($data);
-                }
-                $this->date['autor_id'] = $GLOBALS['user']->id;
-                if (Request::option("resource_id")) {
-                    $this->date['raum'] = null;
-                }
-                $this->date->store();
-
-                $dozenten = $this->date->course->members->filter(function ($m) {
-                    return $m['status'] === "dozent";
-                });
-                if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
-                    $statement = DBManager::get()->prepare("
-                        INSERT IGNORE INTO termin_related_persons
-                        SET user_id = :user_id,
-                            range_id = :termin_id
-                    ");
-                    foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
-                        $statement->execute([
-                            'user_id' => $user_id,
-                            'termin_id' => $this->date->getId()
-                        ]);
-                    }
-                }
-                if (Request::option("resource_id")) {
-                    $singledate = new SingleDate($this->date);
-                    $singledate->bookRoom(
-                        Request::option("resource_id")
-                    );
-                } elseif ($this->date->room_booking) {
-                    $this->date->room_booking->delete();
-                }
-
             }
+
+            //Unregelmäßiger Termin
+            if (!$was_new && $had_metadate && !Request::option("metadate")) {
+                //Regelmäßigen Termin löschen:
+                $data = $this->date->toRawArray();
+                $this->date->cycle->delete();
+                unset($data['metadate_id']);
+                $this->date = new CourseDate();
+                $this->date->setData($data);
+            }
+
+            $this->date['autor_id'] = $GLOBALS['user']->id;
+            if (Request::option("resource_id")) {
+                $this->date['raum'] = null;
+            }
+            if ($data['date_typ']) {
+                $this->date['date_typ'] = $data['date_typ'];
+            }
+
+            $this->date->store();
+
+            $dozenten = $this->date->course->members->filter(function ($m) {
+                return $m['status'] === "dozent";
+            });
+            if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
+                $statement = DBManager::get()->prepare("
+                    INSERT IGNORE INTO termin_related_persons
+                    SET user_id = :user_id,
+                        range_id = :termin_id
+                ");
+                foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
+                    $statement->execute([
+                        'user_id' => $user_id,
+                        'termin_id' => $this->date->getId()
+                    ]);
+                }
+            }
+            if (Request::option("resource_id")) {
+                $singledate = new SingleDate($this->date);
+                $singledate->bookRoom(
+                    Request::option("resource_id")
+                );
+            } elseif ($this->date->room_booking) {
+                $this->date->room_booking->delete();
+            }
+
+
 
             $statusgruppen_ids = Request::getArray('statusgruppen');
             $delete = DBManager::get()->prepare('
