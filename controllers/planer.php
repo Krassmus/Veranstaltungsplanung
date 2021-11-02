@@ -37,7 +37,7 @@ class PlanerController extends PluginController
 
         Helpbar::Get()->addLink(
             _("Benutzung des Veranstaltungsplaners"),
-            "https://github.com/Krassmus/SuperWiki/wiki/Wikilinks-und-Navigation",
+            "https://github.com/Krassmus/Veranstaltungsplanung/blob/master/hilfe.md",
             Icon::create('info-circle', 'info_alt'),
             "_blank"
         );
