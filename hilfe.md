@@ -6,6 +6,8 @@ Mal will man sich alle Veranstaltungen eines Studiengangs anschauen, um sicher z
 
 ## Aufbau des Fensters
 
+![Übersicht des Planers](https://raw.githubusercontent.com/Krassmus/Veranstaltungsplanung/master/assets/images/screenshot_overview.png)
+
 Der Veranstaltungsplaner besteht ja zum Glück eigentlich nur aus einer Seite in Stud.IP. Diese hat eine Sidebar und einen Hauptbereich. In dem Hauptbereich sieht man eine kalendarische Ansicht (Wochenansicht oder eventuell Monatsansicht). In der Sidebar wendet man verschiedene Filter an. In der Kombination dieser Filter bekommt man eine oder mehrere Veranstaltungen und die Termine dazu sieht man dann in der Hauptansicht. Verändert man die Filter, so werden sofort die Termine in der Hauptansicht neu geladen.
 
 So kann man zum Beispiel zuerst nach Semester filtern und dann nach einer Einrichtung. In der Kombination bekommt man alle Veranstaltungen, die in diesem Semester in der betreffenden Einrichtung angeboten werden. In dem Hauptfenster sieht man dann allerdings nicht alle diese Veranstaltungen, sondern alle Termin dieser Veranstaltungen in dem jeweiligen Zeitbereich.
