@@ -35,6 +35,14 @@ class PlanerController extends PluginController
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/mvvfilters.js");
 
+        Helpbar::Get()->addLink(
+            _("Benutzung des Veranstaltungsplaners"),
+            "https://github.com/Krassmus/SuperWiki/wiki/Wikilinks-und-Navigation",
+            Icon::create('info-circle', 'info_alt'),
+            "_blank"
+        );
+
+
         $this->vpfilters = Veranstaltungsplanung::getFilters();
     }
 
@@ -350,7 +358,7 @@ class PlanerController extends PluginController
                     FROM termine
                         LEFT JOIN termin_related_persons ON (termine.termin_id = termin_related_persons.range_id)
                         LEFT JOIN seminar_user ON (seminar_user.Seminar_id = termine.range_id)
-                        LEFT JOIN termin_related_groups ON (termine.termin_id = termin_related_persons.termin_id)
+                        LEFT JOIN termin_related_groups ON (termine.termin_id = termin_related_persons.range_id)
                     WHERE termine.termin_id != :termin_id
                         AND termine.`date` <= :end
                         AND termine.`end_time` >= :start
