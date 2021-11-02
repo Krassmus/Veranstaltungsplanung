@@ -1,6 +1,3 @@
-<?
-$statusgruppen_ids = $date->statusgruppen->pluck('statusgruppe_id');
-?>
 <label>
     <?= _("Teilnehmergruppen") ?>
     <div>

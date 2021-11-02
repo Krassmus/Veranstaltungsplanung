@@ -338,14 +338,41 @@ class DateController extends PluginController
                             ]);
                         }
                     }
-                    if (Request::option("resource_id")) {
-                        $singledate = new SingleDate($date);
-                        $singledate->bookRoom(
-                            Request::option("resource_id")
-                        );
-                    } elseif ($date->room_booking) {
-                        $date->room_booking->delete();
+                    if (Request::option("resource_id_cycledate")) {
+                        if (Request::option("resource_id_cycledate") !== 'no') {
+                            $singledate = new SingleDate($date);
+                            $singledate->bookRoom(
+                                Request::option("resource_id")
+                            );
+                        } elseif($date->room_booking) {
+                            $date->room_booking->delete();
+                        }
                     }
+
+                    $statusgruppen_ids = Request::getArray('statusgruppen_cycledate');
+                    if (!in_array('diff', $statusgruppen_ids)) {
+                        $delete = DBManager::get()->prepare('
+                            DELETE FROM `termin_related_groups`
+                            WHERE `termin_id` = :termin_id
+                                AND `statusgruppe_id` NOT IN (:statusgruppen_ids)
+                        ');
+                        $delete->execute([
+                            'termin_id' => $date->getId(),
+                            'statusgruppen_ids' => $statusgruppen_ids
+                        ]);
+                        foreach ($statusgruppen_ids as $statusgruppen_id) {
+                            $insert = DBManager::get()->prepare('
+                                INSERT IGNORE INTO `termin_related_groups`
+                                SET termin_id = :termin_id,
+                                    `statusgruppe_id` = :statusgruppen_id
+                            ');
+                            $insert->execute([
+                                'termin_id' => $date->getId(),
+                                'statusgruppen_id' => $statusgruppen_id
+                            ]);
+                        }
+                    }
+
                 }
             }
 
@@ -386,12 +413,14 @@ class DateController extends PluginController
                 }
             }
             if (Request::option("resource_id")) {
-                $singledate = new SingleDate($this->date);
-                $singledate->bookRoom(
-                    Request::option("resource_id")
-                );
-            } elseif ($this->date->room_booking) {
-                $this->date->room_booking->delete();
+                if (Request::option("resource_id") !== 'no') {
+                    $singledate = new SingleDate($this->date);
+                    $singledate->bookRoom(
+                        Request::option("resource_id")
+                    );
+                } elseif ($this->date->room_booking) {
+                    $this->date->room_booking->delete();
+                }
             }
 
 

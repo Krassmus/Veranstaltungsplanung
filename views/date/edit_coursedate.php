@@ -122,8 +122,11 @@
                             <? if ($room_search): ?>
                                 <?= $room_search->render() ?>
                             <? else: ?>
-                                <select name="resource_id" <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
-                                    <option value=""><?= _('<em>Keinen</em> Raum buchen') ?></option>
+                                <select name="resource_id"
+                                        onchange="$('#vplaner_resource_id_cycledate').val('')"
+                                        id="vplaner_resource_id"
+                                    <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
+                                    <option value="no"><?= _('<em>Keinen</em> Raum buchen') ?></option>
                                     <? foreach ($selectable_rooms as $room): ?>
                                         <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
                                             <?= htmlReady($room->name) ?>
@@ -150,15 +153,18 @@
                                 }
                             }
                             ?>
-                            <?= _('Raum') ?>
+                            <?= _('Raum aller Termine') ?>
                             <? if ($room_search): ?>
                                 <?= $room_search->render() ?>
                             <? else: ?>
-                                <select name="resource_id_cycledate" <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
+                                <select name="resource_id_cycledate" <?= ($editable ? "" : "readonly") ?>
+                                        id="vplaner_resource_id_cycledate"
+                                        onchange="if ($(this).val()) {$('#vplaner_resource_id').val($(this).val()); }"
+                                        style="width: calc(100% - 23px);">
                                     <option value=""><?= $difference ? _('Unterschiedliche Werte') : '' ?></option>
                                     <option value="no"><?= _('<em>Keinen</em> Raum buchen') ?></option>
                                     <? foreach ($selectable_rooms as $room): ?>
-                                        <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
+                                        <option value="<?= htmlReady($room->id) ?>"<?= !$difference && $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
                                             <?= htmlReady($room->name) ?>
                                             <? if ($room->seats > 1) : ?>
                                                 <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
@@ -205,14 +211,70 @@
                     <td>
                         <div class="statusgruppen">
                             <? if ($date->course) : ?>
-                                <?= $this->render_partial('planer/get_statusgruppen', ['date' => $date, 'statusgruppen' => $date->course->statusgruppen]) ?>
+                                <label>
+                                    <?= _("Teilnehmergruppen") ?>
+                                    <div>
+                                        <?
+                                        $statusgruppen_ids = $date->statusgruppen->pluck('statusgruppe_id');
+                                        ?>
+                                        <select multiple
+                                                class="statusgruppen_select"
+                                                id="vplaner_statusgruppen"
+                                                onchange="if ($('#vplaner_statusgruppen_cycledate').val().join() != $(this).val().join()) { $('#vplaner_statusgruppen_cycledate').val(['diff']).trigger('change'); }"
+                                                name="statusgruppen[]">
+                                            <? foreach ($date->course->statusgruppen as $statusgruppe) : ?>
+                                                <option value="<?= htmlReady($statusgruppe->getId()) ?>"<?= in_array($statusgruppe->getId(), $statusgruppen_ids) ? ' selected' : '' ?>>
+                                                    <?= htmlReady($statusgruppe['name']) ?>
+                                                </option>
+                                            <? endforeach ?>
+                                        </select>
+                                    </div>
+                                </label>
                             <? endif ?>
                         </div>
                     </td>
                     <td>
                         <div class="statusgruppen">
                             <? if ($date->course) : ?>
-                                <?= $this->render_partial('planer/get_statusgruppen', ['date' => $date, 'statusgruppen' => $date->course->statusgruppen]) ?>
+                                <?
+                                $difference = false;
+                                $statusgruppen_ids_hash = null;
+                                if ($date->cycle->dates) {
+                                    foreach ((array) $date->cycle->dates->toArray() as $otherdate) {
+                                        $otherdate = CourseDate::buildExisting($otherdate);
+                                        $statusgruppen_ids = $otherdate->statusgruppen->pluck('statusgruppe_id');
+                                        sort($statusgruppen_ids);
+                                        $statusgruppen_ids = implode("_", $statusgruppen_ids);
+                                        if ($statusgruppen_ids_hash === null) {
+                                            $statusgruppen_ids_hash = $statusgruppen_ids;
+                                        }
+                                        if ($statusgruppen_ids_hash !== $statusgruppen_ids) {
+                                            $difference = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                ?>
+                                <label>
+                                    <?= _("Teilnehmergruppen aller Termine") ?>
+                                    <div>
+                                        <?
+                                        $statusgruppen_ids = $date->statusgruppen->pluck('statusgruppe_id');
+                                        ?>
+                                        <select multiple
+                                                class="statusgruppen_select"
+                                                id="vplaner_statusgruppen_cycledate"
+                                                onchange="if ($(this).val().indexOf('diff') == -1) { $('#vplaner_statusgruppen').val($(this).val()).trigger('change'); }"
+                                                name="statusgruppen_cycledate[]">
+                                            <option value="diff"<?= $difference ? ' selected' : '' ?>><?= $difference ? _('Unterschiedliche Werte') : _('Keine Änderungen') ?></option>
+                                            <? foreach ($date->course->statusgruppen as $statusgruppe) : ?>
+                                                <option value="<?= htmlReady($statusgruppe->getId()) ?>"<?= !$difference && in_array($statusgruppe->getId(), $statusgruppen_ids) ? ' selected' : '' ?>>
+                                                    <?= htmlReady($statusgruppe['name']) ?>
+                                                </option>
+                                            <? endforeach ?>
+                                        </select>
+                                    </div>
+                                </label>
                             <? endif ?>
                         </div>
                     </td>
