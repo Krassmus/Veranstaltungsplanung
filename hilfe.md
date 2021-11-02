@@ -20,6 +20,8 @@ Was auch immer Sie hier auswählen, der Veranstaltungsplaner merkt sich das. Auc
 
 Von diesen vielen Filtermöglichkeiten werden Sie einige vermutlich nie verwenden müssen. Besonders wenn in Ihrem Stud.IP viele freie Datenfelder festgelegt worden sind, kann die Liste der Filter sehr lang werden. Einige davon stören Sie vielleicht. Daher kann man den Planer so konfigurieren, dass lediglich die Filtermöglichkeiten angezeigt werden, die Sie auch wirklich benutzen werden. Klicken Sie dazu in der Sidebar links auf den Punkt (ganz unten) *Planer konfigurieren*.
 
+![Übersicht des Planers](https://raw.githubusercontent.com/Krassmus/Veranstaltungsplanung/master/assets/images/screenshot_config.png)
+
 * **Orientierungslinien**: Dies sind eine oder zwei Linien, die in der Wochenansicht des Planers rot angezeigt werden. Falls man die Vorgabe hat, dass die Termine nie nach 16 Uhr oder vor 8 Uhr stattfinden sollen, kann man die Orientierungslinien auf diese Zeitpunkte setzen, und man sieht sofort im Planer, wenn man etwas aus dem Raster fällt. Genau so könnte man sich damit Mittagspausen und so weiter markieren.
 * **Beginn und Ende des Tages**: Weniger ist manchmal mehr. Hier kann man definieren, dass sowieso nie der Zeitraum von 0 Uhr bis 6 Uhr und nie der Abend ab 20 Uhr angezeigt werden soll. Dann trägt man hier den Beginn und Ende des Tages entsprechend ein und schon ist der Tag übersichtlicher.
 * **Tage verstecken**: Oft weiß man auch, dass man Samstage und Sonntage gar nicht erst berücksichtigen muss in der Planung. Dann kann man hier Samstag und Sonntag auswählen. Diese Tage werden im Planer gar nicht mehr angezeigt und die Anzeige ist wieder etwas übersichtlicher geworden.
