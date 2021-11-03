@@ -181,18 +181,45 @@
                     <td>
                         <label>
                             <?= _('Freie Ortsangabe') ?>
+                            <? if (Config::get()->RESOURCES_ENABLE) : ?>
+                                (<?= _('keine Raumbuchung') ?>)
+                            <? endif ?>
                             <input type="text"
+                                   onchange="if (this.value !== $('#vplaner_raum_cycledate').val()) {$('#vplaner_raum_cycledate').val('Unterschiedliche Werte');}"
+                                   id="vplaner_raum"
                                    name="data[raum]"
                                 <?= ($editable ? "" : "readonly") ?>
                                    value="<?= htmlReady($date['raum']) ?>"
                                    maxlength="255">
-                            <? if (Config::get()->RESOURCES_ENABLE) : ?>
-                                <small style="display: block"><?= _('(führt <em>nicht</em> zu einer Raumbuchung)') ?></small>
-                            <? endif ?>
+
                         </label>
                     </td>
                     <td>
-
+                        <label>
+                            <?
+                            $difference = false;
+                            if ($date->cycle->dates) {
+                                foreach ((array) $date->cycle->dates->toArray() as $otherdate) {
+                                    $otherdate = CourseDate::buildExisting($otherdate);
+                                    if ($date['raum'] !== $otherdate['raum']) {
+                                        $difference = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            ?>
+                            <?= _('Freie Ortsangabe aller Termine') ?>
+                            <? if (Config::get()->RESOURCES_ENABLE) : ?>
+                                (<?= _('keine Raumbuchung') ?>)
+                            <? endif ?>
+                            <input type="text"
+                                   id="vplaner_raum_cycledate"
+                                   name="raum_cycledate"
+                                   onchange="if (this.value !== 'Unterschiedliche Werte') { $('#vplaner_raum').val(this.value); }"
+                                <?= ($editable ? "" : "readonly") ?>
+                                   value="<?= htmlReady($difference ? 'Unterschiedliche Werte' : $date['raum']) ?>"
+                                   maxlength="255">
+                        </label>
                     </td>
                 </tr>
                 <tr>

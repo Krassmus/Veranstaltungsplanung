@@ -321,9 +321,15 @@ class DateController extends PluginController
                         $date['date_typ'] = $this->date['date_typ'];
                     }
 
-                    if (!Request::option("resource_id")) {
-                        $date['raum'] = $this->date['raum'];
+                    if (!Request::option("resource_id_cycledate") || Request::option("resource_id_cycledate") !== 'no' ) {
+                        if (Request::get('raum_cycledate') !== 'Unterschiedliche Werte') {
+                            $date['raum'] = Request::get('raum_cycledate');
+                        }
+                    } else {
+                        $date['raum'] = null;
                     }
+
+
                     $date->store();
 
                     if (($date['date'] == $this->date['date']) && ($date['end_time'] == $this->date['end_time']) && ($date->getId() !== $this->date->getId())) {
