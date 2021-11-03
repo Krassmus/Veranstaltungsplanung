@@ -199,12 +199,83 @@
                     <td>
                         <div class="durchfuehrende_dozenten">
                             <? if ($date->course) : ?>
-                                <?= $this->render_partial('planer/get_dozenten', ['date' => $date, 'dozenten' => $date->course->members->filter(function ($m) { return $m['status'] === "dozent"; })]) ?>
+                                <?
+                                $dozenten = $date->course->members->filter(function ($m) {
+                                    return $m['status'] === "dozent";
+                                });
+                                $teacher_ids = [];
+                                foreach ($date->dozenten as $user) {
+                                    $teacher_ids[] = $user->getId();
+                                }
+                                ?>
+                                <label>
+                                    <?= _("Durchführende Lehrende") ?>
+                                    <div>
+                                        <select
+                                            multiple
+                                            id="vplaner_dozenten"
+                                            onchange="if ($('#vplaner_dozenten_cycledate').val().join() != $(this).val().join()) { $('#vplaner_dozenten_cycledate').val(['diff']).trigger('change'); }"
+                                            class="durchfuehrende_dozenten_select"
+                                            name="durchfuehrende_dozenten[]">
+                                            <? foreach ($dozenten as $dozent) : ?>
+                                                <option value="<?= htmlReady($dozent['user_id']) ?>"<?= in_array($dozent['user_id'], $teacher_ids) ? ' selected' : '' ?>>
+                                                    <?= htmlReady($dozent['title_front']." ".$dozent['vorname']." ".$dozent['nachname']) ?>
+                                                </option>
+                                            <? endforeach ?>
+                                        </select>
+                                    </div>
+                                </label>
                             <? endif ?>
                         </div>
                     </td>
                     <td>
-
+                        <div class="durchfuehrende_dozenten">
+                            <? if ($date->course) : ?>
+                            <label>
+                                <?= _("Durchführende Lehrende aller Termine") ?>
+                                <?
+                                $dozenten = $date->course->members->filter(function ($m) {
+                                    return $m['status'] === "dozent";
+                                });
+                                $difference = false;
+                                $teacher_ids_hash = null;
+                                if ($date->cycle->dates) {
+                                    foreach ((array) $date->cycle->dates->toArray() as $otherdate) {
+                                        $otherdate = CourseDate::buildExisting($otherdate);
+                                        $teacher_ids = $otherdate->dozenten->pluck('user_id');
+                                        sort($teacher_ids);
+                                        $teacher_ids = implode("_", $teacher_ids);
+                                        if ($teacher_ids_hash === null) {
+                                            $teacher_ids_hash = $teacher_ids;
+                                        }
+                                        if ($teacher_ids_hash !== $teacher_ids) {
+                                            $difference = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                $teacher_ids = [];
+                                foreach ($date->dozenten as $user) {
+                                    $teacher_ids[] = $user->getId();
+                                }
+                                ?>
+                                <div>
+                                    <select multiple
+                                            id="vplaner_dozenten_cycledate"
+                                            class="durchfuehrende_dozenten_select"
+                                            onchange="if ($(this).val().indexOf('diff') == -1) { $('#vplaner_dozenten').val($(this).val()).trigger('change'); }"
+                                            name="durchfuehrende_dozenten_cycledate[]">
+                                        <option value="diff"<?= $difference ? ' selected' : '' ?>><?= $difference ? _('Unterschiedliche Werte') : _('Keine Änderungen') ?></option>
+                                        <? foreach ($dozenten as $dozent) : ?>
+                                            <option value="<?= htmlReady($dozent['user_id']) ?>"<?= !$difference && in_array($dozent['user_id'], $teacher_ids) ? ' selected' : '' ?>>
+                                                <?= htmlReady($dozent['title_front']." ".$dozent['vorname']." ".$dozent['nachname']) ?>
+                                            </option>
+                                        <? endforeach ?>
+                                    </select>
+                                </div>
+                            </label>
+                            <? endif ?>
+                        </div>
                     </td>
                 </tr>
                 <tr>

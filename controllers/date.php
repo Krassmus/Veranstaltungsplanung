@@ -290,6 +290,11 @@ class DateController extends PluginController
                 return;
             }
 
+            $delete_termin_related_persons = DBManager::get()->prepare("
+                DELETE FROM termin_related_persons
+                WHERE range_id = :termin_id
+            ");
+
             //Add course date or booking of resource or personal event?
             if (Request::option("metadate")) {
                 if ($this->date['metadate_id']) {
@@ -307,6 +312,7 @@ class DateController extends PluginController
                 $dozenten = Course::find($this->date['range_id'])->members->filter(function ($m) {
                     return $m['status'] === "dozent";
                 });
+
                 foreach ($cycledate->getAllDates() as $date) {
 
                     if (Request::get('date_typ_cycledate')) {
@@ -325,19 +331,24 @@ class DateController extends PluginController
                         $this->date = $date;
                     }
 
-                    if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
-                        $statement = DBManager::get()->prepare("
+
+                    if (Request::getArray("durchfuehrende_dozenten_cycledate") && !in_array('diff', Request::getArray("durchfuehrende_dozenten_cycledate"))) {
+                        $delete_termin_related_persons->execute(['termin_id' => $date->getId()]);
+                        if (count(Request::getArray("durchfuehrende_dozenten_cycledate")) !== count($dozenten)) {
+                            $statement = DBManager::get()->prepare("
                                 INSERT IGNORE INTO termin_related_persons
                                 SET user_id = :user_id,
                                     range_id = :termin_id
                             ");
-                        foreach (Request::getArray("durchfuehrende_dozenten") as $user_id) {
-                            $statement->execute([
-                                'user_id' => $user_id,
-                                'termin_id' => $date->getId()
-                            ]);
+                            foreach (Request::getArray("durchfuehrende_dozenten_cycledate") as $user_id) {
+                                $statement->execute([
+                                    'user_id' => $user_id,
+                                    'termin_id' => $date->getId()
+                                ]);
+                            }
                         }
                     }
+
                     if (Request::option("resource_id_cycledate")) {
                         if (Request::option("resource_id_cycledate") !== 'no') {
                             $singledate = new SingleDate($date);
@@ -399,6 +410,7 @@ class DateController extends PluginController
             $dozenten = $this->date->course->members->filter(function ($m) {
                 return $m['status'] === "dozent";
             });
+            $delete_termin_related_persons->execute(['termin_id' => $this->date->getId()]);
             if (Request::getArray("durchfuehrende_dozenten") && count(Request::getArray("durchfuehrende_dozenten")) !== count($dozenten)) {
                 $statement = DBManager::get()->prepare("
                     INSERT IGNORE INTO termin_related_persons
@@ -412,6 +424,7 @@ class DateController extends PluginController
                     ]);
                 }
             }
+
             if (Request::option("resource_id")) {
                 if (Request::option("resource_id") !== 'no') {
                     $singledate = new SingleDate($this->date);
