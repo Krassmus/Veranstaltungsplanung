@@ -5,6 +5,7 @@ require_once __DIR__."/lib/filters/VPFilter.interface.php";
 
 require_once __DIR__."/lib/filters/VPCourseSearchFilter.php";
 require_once __DIR__."/lib/filters/VPSemesterFilter.php";
+require_once __DIR__."/lib/filters/VPCourseDatetypeFilter.php";
 require_once __DIR__."/lib/filters/VPCourseInstituteFilter.php";
 require_once __DIR__."/lib/filters/VPCourseStudyareaFilter.php";
 require_once __DIR__."/lib/filters/VPCourseModulFilter.php";
