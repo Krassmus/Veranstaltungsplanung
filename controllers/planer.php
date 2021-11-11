@@ -33,7 +33,15 @@ class PlanerController extends PluginController
         PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/daygrid/main.css");
 
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
-        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/mvvfilters.js");
+        //PageLayout::addScript($this->plugin->getPluginURL() . "/assets/mvvfilters.js");
+
+        Helpbar::Get()->addLink(
+            _("Benutzung des Veranstaltungsplaners"),
+            "https://github.com/Krassmus/Veranstaltungsplanung/blob/master/hilfe.md",
+            Icon::create('info-circle', 'info_alt'),
+            "_blank"
+        );
+
 
         $this->vpfilters = Veranstaltungsplanung::getFilters();
     }
@@ -407,6 +415,7 @@ class PlanerController extends PluginController
             ];
         }
 
+        //check for private dates:
         $statement = DBManager::get()->prepare('
             SELECT *
             FROM event_data

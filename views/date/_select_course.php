@@ -42,5 +42,5 @@
    target="_blank"
    title="<?= _("Zur Veranstaltung springen") ?>"
    class="planer_course_link">
-    <?= Icon::create("seminar+move_right", "clickable")->asImg(25, ['class' => "text.bottom"]) ?>
+    <?= Icon::create("seminar", "clickable")->asImg(25, ['class' => "text.bottom"]) ?>
 </a>
