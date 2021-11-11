@@ -332,6 +332,7 @@ class PlanerController extends PluginController
         foreach ($termin->dozenten as $dozent) {
             $teacher_ids[] = $dozent['user_id'];
         }
+
         if (!count($teacher_ids)) {
             $statement = DBManager::get()->prepare("
                 SELECT user_id
@@ -341,38 +342,39 @@ class PlanerController extends PluginController
             ");
             $statement->execute([$termin['range_id']]);
             $teacher_ids = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
+        }
 
-            $statusgruppen_ids = $termin->statusgruppen->pluck("statusgruppe_id");
+        $statusgruppen_ids = $termin->statusgruppen->pluck("statusgruppe_id");
 
-            if (count($statusgruppen_ids) > 0) {
-                $statement = DBManager::get()->prepare("
-                    SELECT termine.*
-                    FROM termine
-                        LEFT JOIN termin_related_persons ON (termine.termin_id = termin_related_persons.range_id)
-                        LEFT JOIN seminar_user ON (seminar_user.Seminar_id = termine.range_id)
-                        LEFT JOIN termin_related_groups ON (termine.termin_id = termin_related_persons.termin_id)
-                    WHERE termine.termin_id != :termin_id
-                        AND termine.`date` <= :end
-                        AND termine.`end_time` >= :start
-                        AND (
-                            (termin_related_persons.user_id IN (:teacher_ids))
-                            OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
-                        )
-                        AND (
-                            (termin_related_groups.statusgruppe_id IN (:statusgruppen_ids))
-                            OR (termin_related_groups.statusgruppe_id IS NULL AND termine.range_id = :seminar_id)
-                        )
-                ");
-                $statement->execute([
-                    'termin_id' => $termin->getId(),
-                    'start' => $start,
-                    'end' => $end,
-                    'teacher_ids' => $teacher_ids,
-                    'statusgruppen_ids' => $statusgruppen_ids,
-                    'seminar_id' => $termin['range_id']
-                ]);
-            } else {
-                $statement = DBManager::get()->prepare("
+        if (count($statusgruppen_ids) > 0) {
+            $statement = DBManager::get()->prepare("
+                SELECT termine.*
+                FROM termine
+                    LEFT JOIN termin_related_persons ON (termine.termin_id = termin_related_persons.range_id)
+                    LEFT JOIN seminar_user ON (seminar_user.Seminar_id = termine.range_id)
+                    LEFT JOIN termin_related_groups ON (termine.termin_id = termin_related_persons.range_id)
+                WHERE termine.termin_id != :termin_id
+                    AND termine.`date` <= :end
+                    AND termine.`end_time` >= :start
+                    AND (
+                        (termin_related_persons.user_id IN (:teacher_ids))
+                        OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
+                    )
+                    AND (
+                        (termin_related_groups.statusgruppe_id IN (:statusgruppen_ids))
+                        OR (termin_related_groups.statusgruppe_id IS NULL AND termine.range_id = :seminar_id)
+                    )
+            ");
+            $statement->execute([
+                'termin_id' => $termin->getId(),
+                'start' => $start,
+                'end' => $end,
+                'teacher_ids' => $teacher_ids,
+                'statusgruppen_ids' => $statusgruppen_ids,
+                'seminar_id' => $termin['range_id']
+            ]);
+        } else {
+            $statement = DBManager::get()->prepare("
                 SELECT termine.*
                 FROM termine
                     LEFT JOIN termin_related_persons ON (termine.termin_id = termin_related_persons.range_id)
@@ -384,27 +386,49 @@ class PlanerController extends PluginController
                         (termin_related_persons.user_id IN (:teacher_ids))
                         OR (termin_related_persons.user_id IS NULL AND seminar_user.user_id IN (:teacher_ids))
                     )
-             ");
-                $statement->execute([
-                    'termin_id' => $termin->getId(),
-                    'start' => $start,
-                    'end' => $end,
-                    'teacher_ids' => $teacher_ids
-                ]);
-            }
-
-            $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($termine_data as $data) {
-                $termin_ids[] = $data['termin_id'];
-                $events[] = [
-                    'id' => $data['termin_id'],
-                    'start' => date("c", $data['date']),
-                    'end' => date("c", $data['end_time']),
-                    'conflict' => "teacher_room",
-                    'reason' => _("Lehrender hat dort keine Zeit")
-                ];
-            }
+            ");
+            $statement->execute([
+                'termin_id' => $termin->getId(),
+                'start' => $start,
+                'end' => $end,
+                'teacher_ids' => $teacher_ids
+            ]);
         }
+
+        $termine_data = $statement->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($termine_data as $data) {
+            $termin_ids[] = $data['termin_id'];
+            $events[] = [
+                'id' => $data['termin_id'],
+                'start' => date("c", $data['date']),
+                'end' => date("c", $data['end_time']),
+                'conflict' => "teacher_room",
+                'reason' => _("Lehrender hat dort keine Zeit")
+            ];
+        }
+
+        $statement = DBManager::get()->prepare('
+            SELECT *
+            FROM event_data
+            WHERE author_id IN (:user_ids)
+                AND event_data.`start` <= :end
+                AND event_data.`end` >= :start
+        ');
+        $statement->execute([
+            'user_ids' => $teacher_ids,
+            'start' => $start,
+            'end' => $end
+        ]);
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $data) {
+            $events[] = [
+                'id' => $data['event_id'],
+                'start' => date("c", $data['start']),
+                'end' => date("c", $data['end']),
+                'conflict' => "teacher_private_event",
+                'reason' => _("Lehrender hat dort privaten Termin")
+            ];
+        }
+
 
         //check for blocked resource:
         if ($termin->room_booking) {
