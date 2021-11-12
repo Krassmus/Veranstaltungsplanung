@@ -53,6 +53,10 @@
     <input type="hidden" id="print" value="1">
 <? endif ?>
 
+<? if ($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_CONTEXTMENU) : ?>
+    <input type="hidden" id="context_menu" value="1">
+<? endif ?>
+
 <?
 
 $select = new SelectWidget(

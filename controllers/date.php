@@ -498,4 +498,45 @@ class DateController extends PluginController
         }
     }
 
+    public function get_topics_action(CourseDate $coursedate)
+    {
+        $topics = [];
+        foreach ($coursedate->course->topics as $topic) {
+            $active = false;
+            foreach ($coursedate->topics as $t) {
+                if ($t->getId() === $topic->getId()) {
+                    $active = true;
+                    break;
+                }
+            }
+            $topics[] = [
+                'issue_id' => $topic->getId(),
+                'title' => $topic['title'],
+                'active' => $active
+            ];
+        }
+        $this->render_json($topics);
+    }
+
+    public function toggle_topic_action(CourseDate $coursedate)
+    {
+        if (Request::isPost() && Request::option('issue_id') && $GLOBALS['perm']->have_studip_perm('tutor', $coursedate['range_id'])) {
+            $topic = CourseTopic::find(Request::option('issue_id'));
+            if ($topic && $topic['seminar_id'] === $coursedate['range_id']) {
+                $exists = false;
+                foreach ($coursedate->topics as $t) {
+                    if ($topic->getId() === $t->getId()) {
+                        $exists = true;
+                    }
+                }
+                if ($exists) {
+                    $coursedate->removeTopic($topic);
+                } else {
+                    $coursedate->addTopic($topic);
+                }
+            }
+        }
+        $this->render_nothing();
+    }
+
 }

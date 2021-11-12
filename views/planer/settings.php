@@ -69,6 +69,14 @@
                    value="1">
             <?= _("Immer fragen, bevor ein Termin verschoben wird.") ?>
         </label>
+
+        <label>
+            <input type="checkbox"
+                   name="context_menu"
+                <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_CONTEXTMENU ? 'checked' : '' ?>
+                   value="1">
+            <?= _("Kontextmenü beim Rechtsklick auf Termine") ?>
+        </label>
     </fieldset>
 
     <? $filter_names = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DISABLED_FILTER, true) : [] ?>

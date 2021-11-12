@@ -281,16 +281,20 @@ jQuery(function () {
         selectMirror: true,
         timezone: 'local',
         eventRender: function(info) {
-            $(info.el).attr("title", info.event._def.title);
+            $(info.el)
+                .attr("title", info.event._def.title)
+                .data('id', info.event._def.publicId);
         },
         eventClick: function (info) {
             var termin_id = info.event.id;
-            STUDIP.Dialog.fromURL(
-                STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit/' + termin_id),
-                {
-                    "data": STUDIP.Veranstaltungsplanung.getCurrentParameters()
-                }
-            );
+            if (!$(info.el).hasClass('event_data')) {
+                STUDIP.Dialog.fromURL(
+                    STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit/' + termin_id),
+                    {
+                        "data": STUDIP.Veranstaltungsplanung.getCurrentParameters()
+                    }
+                );
+            }
         },
         eventResizeStart: STUDIP.Veranstaltungsplanung.changeEventStart,
         eventResizeStop: STUDIP.Veranstaltungsplanung.changeEventEnd,
@@ -362,4 +366,102 @@ jQuery(function () {
     STUDIP.Veranstaltungsplanung.calendar.render();
 
     STUDIP.Veranstaltungsplanung.rearrangeSidebar();
+
+    if ($('#context_menu').val()) {
+
+        let loadTopics = function (termin_id, event_type) {
+            var dfd = jQuery.Deferred();
+            $.ajax({
+                "url": STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/get_topics/' + termin_id),
+                'dataType': 'json',
+                'success': function (topics) {
+                    let subitems = {};
+                    for (let i in topics) {
+                        subitems['topic_' + topics[i].issue_id] = {
+                            'name': topics[i].title,
+                            'type': 'checkbox',
+                            'selected': topics[i].active,
+                            'value': topics[i].issue_id,
+                            'events': {
+                                change: function () {
+                                    let issue_id = $(this).val();
+                                    $.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/toggle_topic/' + termin_id), {
+                                        'issue_id': issue_id
+                                    });
+                                }
+                            }
+                        };
+                    }
+                    if (Object.keys(subitems).length === 0) {
+                        subitems.topic_notopic = {
+                            'name': 'Keine Themen',
+                            'disabled': true
+                        };
+                    }
+                    dfd.resolve(subitems);
+                }
+            });
+            return dfd.promise();
+        };
+
+        $.contextMenu({
+            selector: '.fc-event:not(.event_data)',
+            build: function ($trigger, e) {
+                let id = $(e.target).closest('.fc-event').data('id').split('_');
+                let termin_id = id[1];
+                let is_dateseries = $(e.target).closest('.fc-event').hasClass('dateseries');
+                let is_personaldate = $(e.target).closest('.fc-event').hasClass('event_data');
+                let items = {};
+                items.edit = {
+                    name: "Bearbeiten",
+                    icon: "edit",
+                    callback: function () {
+                        STUDIP.Dialog.fromURL(
+                            STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/edit/' + termin_id),
+                            {
+                                "data": STUDIP.Veranstaltungsplanung.getCurrentParameters()
+                            }
+                        );
+                    }
+                };
+                if (is_dateseries) {
+                    items.cancel = {
+                        name: "Ausfallen lassen",
+                        icon: "cancel",
+                        callback: function () {
+                            STUDIP.Dialog.confirm('Wirklich ausfallen lassen?', function () {
+                                $.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/save/' + termin_id), {
+                                    'ex_date': 1
+                                }).then(STUDIP.Veranstaltungsplanung.reloadCalendar);
+                            });
+                        }
+                    };
+                }
+                items.delete = {
+                    name: "Löschen",
+                    icon: "delete",
+                    callback: function () {
+                        STUDIP.Dialog.confirm('Wirklich löschen?', function () {
+                            $.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/save/' + termin_id), {
+                                'delete_date': 1
+                            }).then(STUDIP.Veranstaltungsplanung.reloadCalendar);
+                        });
+                    }
+                };
+                if (!is_personaldate) {
+                    items.sep1 = "---------";
+                    items.topics = {
+                        name: "Themen",
+                        icon: function () {
+                            return 'context-menu-icon context-menu-icon-topic';
+                        },
+                        items: loadTopics(termin_id, id[0])
+                    };
+                }
+                return {
+                    items: items
+                };
+            }
+        });
+    }
 });

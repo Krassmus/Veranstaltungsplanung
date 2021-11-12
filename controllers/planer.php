@@ -33,7 +33,10 @@ class PlanerController extends PluginController
         PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/daygrid/main.css");
 
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/study-area-tree.js");
-        //PageLayout::addScript($this->plugin->getPluginURL() . "/assets/mvvfilters.js");
+
+        PageLayout::addStylesheet($this->plugin->getPluginURL() . "/assets/jQuery-contextMenu/dist/jquery.contextMenu.css");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/jQuery-contextMenu/dist/jquery.contextMenu.js");
+        PageLayout::addScript($this->plugin->getPluginURL() . "/assets/jQuery-contextMenu/dist/jquery.ui.position.js");
 
         Helpbar::Get()->addLink(
             _("Benutzung des Veranstaltungsplaners"),
@@ -504,6 +507,7 @@ class PlanerController extends PluginController
                 json_encode(array_map(function ($i) { return (int) $i; }, Request::getArray("hidden_days")))
             );
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_ALWAYS_ASK', Request::get("always_ask", 0));
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_CONTEXTMENU', Request::get("context_menu", 0));
 
             $filters = [];
             foreach ($this->filters as $filter_objects) {
