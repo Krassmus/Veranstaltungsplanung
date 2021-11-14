@@ -498,9 +498,13 @@ class DateController extends PluginController
         }
     }
 
-    public function get_topics_action(CourseDate $coursedate)
+    public function get_contextmenu_items_action(CourseDate $coursedate)
     {
-        $topics = [];
+        $output = [
+            'topics' => [],
+            'teachers' => [],
+            'groups' => []
+        ];
         foreach ($coursedate->course->topics as $topic) {
             $active = false;
             foreach ($coursedate->topics as $t) {
@@ -509,13 +513,45 @@ class DateController extends PluginController
                     break;
                 }
             }
-            $topics[] = [
+            $output['topics'][] = [
                 'issue_id' => $topic->getId(),
                 'title' => $topic['title'],
                 'active' => $active
             ];
         }
-        $this->render_json($topics);
+        foreach ($coursedate->course->statusgruppen as $gruppe) {
+            $active = false;
+            foreach ($coursedate->statusgruppen as $g) {
+                if ($g->getId() === $gruppe->getId()) {
+                    $active = true;
+                    break;
+                }
+            }
+            $output['groups'][] = [
+                'statusgruppe_id' => $gruppe->getId(),
+                'name' => $gruppe['name'],
+                'active' => $active
+            ];
+        }
+        foreach ($coursedate->course->members->filter(function ($m) { return $m['status'] === 'dozent'; }) as $member) {
+            $active = false;
+            if (count($coursedate->dozenten)) {
+                foreach ($coursedate->dozenten as $u) {
+                    if ($u->getId() === $member['user_id']) {
+                        $active = true;
+                        break;
+                    }
+                }
+            } else {
+                $active = true;
+            }
+            $output['teachers'][] = [
+                'user_id' => $member['user_id'],
+                'name' => $member->user->getFullName(),
+                'active' => $active
+            ];
+        }
+        $this->render_json($output);
     }
 
     public function toggle_topic_action(CourseDate $coursedate)
@@ -539,4 +575,105 @@ class DateController extends PluginController
         $this->render_nothing();
     }
 
+    public function add_topic_action(CourseDate $coursedate)
+    {
+        if (Request::isPost() && Request::get('topic_title') && $GLOBALS['perm']->have_studip_perm('tutor', $coursedate['range_id'])) {
+            $topic = CourseTopic::findOneBySQL('`seminar_id` = :course_id AND `title` = :title', [
+                'course_id' => $coursedate['range_id'],
+                'title' => Request::get('topic_title')
+            ]);
+            if (!$topic) {
+                $topic = new CourseTopic();
+                $topic['seminar_id'] = $coursedate['range_id'];
+                $topic['title'] = Request::get('topic_title');
+                $topic->store();
+            }
+            $coursedate->addTopic($topic);
+        }
+        $this->render_nothing();
+    }
+
+    public function toggle_teacher_action(CourseDate $coursedate)
+    {
+        if (Request::isPost() && Request::option('user_id') && $GLOBALS['perm']->have_studip_perm('dozent', $coursedate['range_id'])) {
+            $dozenten = $coursedate->course->members->filter(function ($m) { return $m['status'] === 'dozent'; });
+            if (Request::bool('active')) {
+                if (count($dozenten) === count($coursedate->dozenten) + 1) {
+                    $statement = DBManager::get()->prepare('
+                        DELETE FROM `termin_related_persons`
+                        WHERE `range_id` = :termin_id
+                    ');
+                    $statement->execute([
+                        'termin_id' => $coursedate->getId()
+                    ]);
+                } else {
+                    $statement = DBManager::get()->prepare('
+                        INSERT IGNORE INTO `termin_related_persons`
+                        SET `user_id` = :user_id,
+                            `range_id` = :termin_id
+                    ');
+                    $statement->execute([
+                        'user_id' => Request::option('user_id'),
+                        'termin_id' => $coursedate->getId()
+                    ]);
+                }
+            } else {
+                if (count($coursedate->dozenten) === 0) {
+                    foreach ($dozenten as $doz) {
+                        if ($doz['user_id'] !== Request::option('user_id')) {
+                            $statement = DBManager::get()->prepare('
+                                INSERT IGNORE INTO `termin_related_persons`
+                                SET `user_id` = :user_id,
+                                    `range_id` = :termin_id
+                            ');
+                            $statement->execute([
+                                'user_id' => Request::option('user_id'),
+                                'termin_id' => $coursedate->getId()
+                            ]);
+                        }
+                    }
+                } else {
+                    $statement = DBManager::get()->prepare('
+                        DELETE FROM `termin_related_persons`
+                        WHERE `user_id` = :user_id
+                            AND `range_id` = :termin_id
+                    ');
+                    $statement->execute([
+                        'user_id' => Request::option('user_id'),
+                        'termin_id' => $coursedate->getId()
+                    ]);
+                }
+            }
+        }
+        $this->render_nothing();
+    }
+
+    public function toggle_statusgruppe_action(CourseDate $coursedate)
+    {
+        $statusgruppe = Statusgruppen::find(Request::option('statusgruppe_id'));
+        if (Request::isPost() && $statusgruppe && ($statusgruppe['range_id'] === $coursedate['range_id']) && $GLOBALS['perm']->have_studip_perm('tutor', $coursedate['range_id'])) {
+            if (Request::bool('active')) {
+                $statement = DBManager::get()->prepare('
+                    INSERT IGNORE INTO `termin_related_groups`
+                    SET `termin_id` = :termin_id,
+                        `statusgruppe_id` = :statusgruppe_id
+                ');
+                $statement->execute([
+                    'termin_id' => $coursedate->getId(),
+                    'statusgruppe_id' => $statusgruppe->getId()
+                ]);
+            } else {
+                $statement = DBManager::get()->prepare('
+                    DELETE FROM `termin_related_groups`
+                    WHERE `termin_id` = :termin_id
+                        AND `statusgruppe_id` = :statusgruppe_id
+                ');
+                $statement->execute([
+                    'termin_id' => $coursedate->getId(),
+                    'statusgruppe_id' => $statusgruppe->getId()
+                ]);
+            }
+        }
+        $this->render_nothing();
+    }
 }

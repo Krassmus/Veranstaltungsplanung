@@ -369,12 +369,15 @@ jQuery(function () {
 
     if ($('#context_menu').val()) {
 
-        let loadTopics = function (termin_id, event_type) {
-            var dfd = jQuery.Deferred();
+        let loadContents = function (termin_id, event_type) {
+            let topics_promise = jQuery.Deferred();
+            let groups_promise = jQuery.Deferred();
+            let teachers_promise = jQuery.Deferred();
             $.ajax({
-                "url": STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/get_topics/' + termin_id),
+                "url": STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/get_contextmenu_items/' + termin_id),
                 'dataType': 'json',
-                'success': function (topics) {
+                'success': function (output) {
+                    let topics = output.topics;
                     let subitems = {};
                     for (let i in topics) {
                         subitems['topic_' + topics[i].issue_id] = {
@@ -398,10 +401,78 @@ jQuery(function () {
                             'disabled': true
                         };
                     }
-                    dfd.resolve(subitems);
+                    subitems['topic_new'] = {
+                        'name': 'Thema anlegen',
+                        'type': 'text',
+                        'events': {
+                            keyup: function (ev) {
+                                if (ev.originalEvent.key === 'Enter') {
+                                    let topic = $(this).val();
+                                    $.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/add_topic/' + termin_id), {
+                                        'topic_title': topic
+                                    });
+                                    $(this).val('');
+                                    $.contextMenu('update');
+                                }
+                            }
+                        }
+                    };
+                    topics_promise.resolve(subitems);
+
+                    //teachers:
+                    subitems = {};
+                    if (output.teachers.length > 1) {
+                        for (let i in output.teachers) {
+                            subitems['teacher_' + output.teachers[i].user_id] = {
+                                'name': output.teachers[i].name,
+                                'type': 'checkbox',
+                                'selected': output.teachers[i].active,
+                                'value': output.teachers[i].user_id,
+                                'events': {
+                                    change: function () {
+                                        let user_id = $(this).val();
+                                        $.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/toggle_teacher/' + termin_id), {
+                                            'user_id': user_id,
+                                            'active': $(this).is(':checked') ? 1 : 0
+                                        });
+                                    }
+                                }
+                            };
+                        }
+                    } else if (output.teachers.length > 0) {
+                        subitems.topic_notopic = {
+                            'name': output.teachers[0].name,
+                            'disabled': true
+                        };
+                    }
+                    teachers_promise.resolve(subitems);
+
+                    subitems = {};
+                    for (let i in output.groups) {
+                        subitems['statusgruppe_' + output.groups[i].statusgruppe_id] = {
+                            'name': output.groups[i].name,
+                            'type': 'checkbox',
+                            'selected': output.groups[i].active,
+                            'value': output.groups[i].statusgruppe_id,
+                            'events': {
+                                change: function () {
+                                    let statusgruppe_id = $(this).val();
+                                    $.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/toggle_statusgruppe/' + termin_id), {
+                                        'statusgruppe_id': statusgruppe_id,
+                                        'active': $(this).is(':checked') ? 1 : 0
+                                    });
+                                }
+                            }
+                        };
+                    }
+                    groups_promise.resolve(subitems);
                 }
             });
-            return dfd.promise();
+            return {
+                'topics': topics_promise.promise(),
+                'groups': groups_promise.promise(),
+                'teachers': teachers_promise.promise()
+            };
         };
 
         $.contextMenu({
@@ -448,14 +519,29 @@ jQuery(function () {
                         });
                     }
                 };
+                let contents = loadContents(termin_id, id[0]);
                 if (!is_personaldate) {
                     items.sep1 = "---------";
+                    items.teachers = {
+                        name: 'Durchführend',
+                        icon: function () {
+                            return 'context-menu-icon context-menu-icon-teacher';
+                        },
+                        items: contents.teachers
+                    };
+                    items.groups = {
+                        name: 'Gruppen',
+                        icon: function () {
+                            return 'context-menu-icon context-menu-icon-groups';
+                        },
+                        items: contents.groups
+                    };
                     items.topics = {
                         name: "Themen",
                         icon: function () {
                             return 'context-menu-icon context-menu-icon-topic';
                         },
-                        items: loadTopics(termin_id, id[0])
+                        items: contents.topics
                     };
                 }
                 return {

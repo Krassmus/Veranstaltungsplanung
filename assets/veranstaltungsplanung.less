@@ -111,3 +111,54 @@ form.default {
         top: 7px;
     }
 }
+
+.context-menu-root {
+    .context-menu-item.context-menu-hover {
+        background-color: @base-color;
+        color: white;
+    }
+    .context-menu-icon:not(.context-menu-icon-loading)::before {
+        content: '';
+        height: 20px;
+        background-repeat: no-repeat;
+        background-position: center center;
+    }
+
+    .context-menu-icon-edit::before {
+        .background-icon('edit', 'clickable');
+    }
+    .context-menu-icon-edit.context-menu-hover::before {
+        .background-icon('edit', 'info_alt');
+    }
+    .context-menu-icon-cancel::before {
+        .background-icon('decline', 'clickable');
+    }
+    .context-menu-icon-cancel.context-menu-hover::before {
+        .background-icon('decline', 'info_alt');
+    }
+    .context-menu-icon-delete::before {
+        .background-icon('trash', 'clickable');
+    }
+    .context-menu-icon-delete.context-menu-hover::before {
+        .background-icon('trash', 'info_alt');
+    }
+    .context-menu-icon-topic:not(.context-menu-icon-loading)::before {
+        .background-icon('topic', 'clickable');
+    }
+    .context-menu-icon-topic:not(.context-menu-icon-loading).context-menu-hover::before {
+        .background-icon('topic', 'info_alt');
+    }
+    .context-menu-icon-teacher:not(.context-menu-icon-loading)::before {
+        .background-icon('person', 'clickable');
+    }
+    .context-menu-icon-teacher:not(.context-menu-icon-loading).context-menu-hover::before {
+        .background-icon('person', 'info_alt');
+    }
+    .context-menu-icon-groups:not(.context-menu-icon-loading)::before {
+        .background-icon('group2', 'clickable');
+    }
+    .context-menu-icon-groups:not(.context-menu-icon-loading).context-menu-hover::before {
+        .background-icon('group2', 'info_alt');
+    }
+
+}
