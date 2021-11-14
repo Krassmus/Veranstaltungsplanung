@@ -441,7 +441,9 @@ jQuery(function () {
                         }
                     } else if (output.teachers.length > 0) {
                         subitems.topic_notopic = {
-                            'name': output.teachers[0].name,
+                            //'name': '☑ ' + output.teachers[0].name,
+                            'isHtmlName': true,
+                            'name': '<input type="checkbox" readonly disabled checked> ' + $('<span/>').text(output.teachers[0].name).html(),
                             'disabled': true
                         };
                     }
@@ -463,6 +465,12 @@ jQuery(function () {
                                     });
                                 }
                             }
+                        };
+                    }
+                    if (Object.keys(subitems).length === 0) {
+                        subitems.topic_notopic = {
+                            'name': 'Keine Gruppen',
+                            'disabled': true
                         };
                     }
                     groups_promise.resolve(subitems);
