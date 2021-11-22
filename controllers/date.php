@@ -627,7 +627,7 @@ class DateController extends PluginController
                                     `range_id` = :termin_id
                             ');
                             $statement->execute([
-                                'user_id' => Request::option('user_id'),
+                                'user_id' => $doz['user_id'],
                                 'termin_id' => $coursedate->getId()
                             ]);
                         }
