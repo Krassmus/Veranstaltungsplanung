@@ -181,8 +181,12 @@ class PlanerController extends PluginController
                 'end' => $end
             ]);
             $query->join(
+                "calendar_event",
+                "`calendar_event`.`event_id` = `event_data`.`event_id`"
+            );
+            $query->join(
                 "auth_user_md5",
-                "`event_data`.`author_id` = `auth_user_md5`.`user_id`"
+                "`calendar_event`.`range_id` = `auth_user_md5`.`user_id`"
             );
             $query->groupBy("`event_data`.`event_id`");
             foreach ($this->vpfilters['persons'] as $filter) {
