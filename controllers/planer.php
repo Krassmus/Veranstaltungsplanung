@@ -186,7 +186,7 @@ class PlanerController extends PluginController
                     $filter->applyFilter($index, $query);
                 }
             }
-            if ($query->count() < 500) {
+            if ($query->count() < 100) {
                 foreach ($query->fetchAll("User") as $user) {
                     $list = SingleCalendar::getEventList(
                         $user->id,
