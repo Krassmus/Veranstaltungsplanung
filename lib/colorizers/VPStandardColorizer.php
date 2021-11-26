@@ -15,7 +15,7 @@ class VPStandardColorizer implements VPColorizer
         if (is_a($termin, "CourseDate")) {
             return $termin['metadate_id'] ? "1" : "0";
         }
-        if (is_a($termin, "EventData")) {
+        if (is_a($termin, "EventData") || is_a($termin, "CalendarEvent")) {
             return "2";
         }
     }

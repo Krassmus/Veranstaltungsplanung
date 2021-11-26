@@ -5,6 +5,10 @@ require_once __DIR__."/../lib/ResourceSelector.php";
 require_once __DIR__."/../lib/SeatSelector.php";
 require_once __DIR__."/../lib/ModulSelector.php";
 
+if (file_exists($GLOBALS['STUDIP_BASE_PATH'].'/app/models/calendar/SingleCalendar.php')) {
+    require_once 'app/models/calendar/SingleCalendar.php';
+}
+
 class PlanerController extends PluginController
 {
 
@@ -173,40 +177,42 @@ class PlanerController extends PluginController
 
         if ($object_type === "persons") {
             $query = new \Veranstaltungsplanung\SQLQuery(
-                "event_data",
-                "private_termine"
-            );
-            $query->where("time", "(`event_data`.`start` <= :start AND `event_data`.`end` >= :start) OR (`event_data`.`start` <= :end AND `event_data`.`end` >= :end) OR (`event_data`.`start` >= :start AND `event_data`.`end` <= :end)", [
-                'start' => $start,
-                'end' => $end
-            ]);
-            $query->join(
-                "calendar_event",
-                "`calendar_event`.`event_id` = `event_data`.`event_id`"
-            );
-            $query->join(
                 "auth_user_md5",
-                "`calendar_event`.`range_id` = `auth_user_md5`.`user_id`"
+                "persons"
             );
-            $query->groupBy("`event_data`.`event_id`");
+            $query->groupBy("`auth_user_md5`.`user_id`");
             foreach ($this->vpfilters['persons'] as $filter) {
                 foreach ($filter->getNames() as $index => $name) {
                     $filter->applyFilter($index, $query);
                 }
             }
+            if ($query->count() < 500) {
+                foreach ($query->fetchAll("User") as $user) {
+                    $list = SingleCalendar::getEventList(
+                        $user->id,
+                        $start,
+                        $end,
+                        $user->id
+                    );
 
-            foreach ($query->fetchAll("EventData") as $termin) {
-
-                $termine[] = [
-                    'id' => "eventdata_".$termin->getId(),
-                    'title' => $termin->author['nachname'].": ".($termin['class'] === "PRIVATE" ? _("Privater Termin") : $termin['summary'].($termin['class'] === "CONFIDENTIAL" ? _(" (vertraulich)") : "")),
-                    'start' => date("c", $termin['start']),
-                    'end' => date("c", $termin['end']),
-                    'editable' => false,
-                    'backgroundColor' => $colorizer->getColor($colorizerindex, $termin),
-                    'classNames' => ["event_data"]
-                ];
+                    foreach ($list as $calendar_event) {
+                        if (is_a($calendar_event, "CalendarEvent")) {
+                            $termine[] = [
+                                'id' => "eventdata_" . $calendar_event->getUId(),
+                                'title' => $calendar_event->getName() . ": " . $calendar_event->getTitle(),
+                                'start' => date("c", $calendar_event->getStart()),
+                                'end' => date("c", $calendar_event->getEnd()),
+                                'editable' => false,
+                                'backgroundColor' => $colorizer->getColor($colorizerindex, $calendar_event),
+                                'classNames' => ["event_data"]
+                            ];
+                        }
+                    }
+                }
             }
+
+
+
         }
         if ($object_type === "resources") {
             $query = new \Veranstaltungsplanung\SQLQuery(
