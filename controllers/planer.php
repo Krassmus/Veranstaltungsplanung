@@ -180,6 +180,34 @@ class PlanerController extends PluginController
                 "auth_user_md5",
                 "persons"
             );
+            $query->join(
+                "calendar_event",
+                "`calendar_event`.`range_id` = `auth_user_md5`.`user_id`"
+            );
+            $query->join(
+                "event_data",
+                "`event_data`.`event_id` = `calendar_event`.`event_id`"
+            );
+            $query->where("time", "(
+                    (
+                        `event_data`.`rtype` = 'SINGLE'
+                        AND (
+                            (`event_data`.`start` <= :start AND `event_data`.`end` >= :start)
+                            OR (`event_data`.`start` <= :end AND `event_data`.`end` >= :end)
+                            OR (`event_data`.`start` >= :start AND `event_data`.`end` <= :end)
+                        )
+                    ) OR (
+                        `event_data`.`rtype` != 'SINGLE'
+                        AND (
+                            (`event_data`.`start` <= :start AND `event_data`.`expire` >= :start)
+                            OR (`event_data`.`start` <= :end AND `event_data`.`expire` >= :end)
+                            OR (`event_data`.`start` >= :start AND `event_data`.`expire` <= :end)
+                        )
+                    )
+                )", [
+                'start' => $start,
+                'end' => $end
+            ]);
             $query->groupBy("`auth_user_md5`.`user_id`");
             foreach ($this->vpfilters['persons'] as $filter) {
                 foreach ($filter->getNames() as $index => $name) {
