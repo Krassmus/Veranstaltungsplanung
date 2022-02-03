@@ -36,16 +36,24 @@ class VPResourceTreeFilter implements VPFilter
             $query->join(
                 "resources2",
                 "resources",
-                "`resources2`.`id` = `resources`.`parent_id`"
+                "`resources2`.`id` = `resources`.`parent_id`",
+                'LEFT JOIN'
             );
-            /*$query->join(
+            $query->join(
                 "resources3",
                 "resources",
-                "`resources3`.`id` = `resources2`.`parent_id`"
+                "`resources3`.`id` = `resources2`.`parent_id`",
+                'LEFT JOIN'
             );
-            $query->where("resource_ids", "(`resources`.`id` IN (:resource_ids) OR `resources2`.`id` IN (:resource_ids) OR `resources3`.`id` IN (:resource_ids))", [
+            $query->join(
+                "resources4",
+                "resources",
+                "`resources4`.`id` = `resources3`.`parent_id`",
+                'LEFT JOIN'
+            );
+            $query->where("resource_ids", "(`resources`.`id` IN (:resource_ids) OR `resources2`.`id` IN (:resource_ids) OR `resources3`.`id` IN (:resource_ids) OR `resources4`.`id` IN (:resource_ids))", [
                 'resource_ids' => $resource_ids
-            ]);*/
+            ]);
         }
     }
 }
