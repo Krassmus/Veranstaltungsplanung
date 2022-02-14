@@ -63,7 +63,7 @@ class SQLQuery {
      * @param string $join : type of joining "INNER JOIN" or "LEFT JOIN"
      * @return $this
      */
-    public function join($alias, $table = null, $on = "", $join = "INNER JOIN")
+    public function join($alias, $table = null, $on = "", $join = "INNER JOIN", $before = null)
     {
         if (preg_match("/[\s=]/", $table)) {
             //user left away the $table var and shifted the other variables:
@@ -71,15 +71,23 @@ class SQLQuery {
             $on = $table;
             $table = null;
         }
-        $this->settings['joins'][$alias] = [];
+        $j = [];
         if ($table) {
-            $this->settings['joins'][$alias]['table'] = $table;
+            $j['table'] = $table;
         }
         if ($on) {
-            $this->settings['joins'][$alias]['on'] = $on;
+            $j['on'] = $on;
         }
         if ($join) {
-            $this->settings['joins'][$alias]['join'] = $join;
+            $j['join'] = $join;
+        }
+        if ($before === null) {
+            $this->settings['joins'][$alias] = $j;
+        } else {
+            $index = array_search($before, array_keys($this->settings['joins']));
+            $this->settings['joins'] = array_slice($this->settings['joins'], 0, $index, true) +
+                [$alias => $j] +
+                array_slice($this->settings['joins'], $index, NULL, true);
         }
         return $this;
     }

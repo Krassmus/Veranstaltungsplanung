@@ -105,6 +105,21 @@
 
 }
 
+.filterconflicts {
+    input[type=checkbox] {
+        display: none;
+    }
+    input[type=checkbox] + img {
+        display: none;
+    }
+    input[type=checkbox]:checked + img {
+        display: inline-block;
+    }
+    input[type=checkbox]:checked + img + img {
+        display: none;
+    }
+}
+
 form.default {
     input[type=range] {
         position: relative;

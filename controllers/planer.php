@@ -4,6 +4,7 @@ require_once __DIR__."/../lib/StudyAreaSelector.php";
 require_once __DIR__."/../lib/ResourceSelector.php";
 require_once __DIR__."/../lib/SeatSelector.php";
 require_once __DIR__."/../lib/ModulSelector.php";
+require_once __DIR__."/../lib/CourseConflictsSelector.php";
 
 if (file_exists($GLOBALS['STUDIP_BASE_PATH'].'/app/models/calendar/SingleCalendar.php')) {
     require_once 'app/models/calendar/SingleCalendar.php';
