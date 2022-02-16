@@ -146,6 +146,12 @@ class SQLQuery {
         return $this;
     }
 
+    public function addSurroundingQuery($superquery)
+    {
+        $this->settings['superquery'] = $superquery;
+        return $this;
+    }
+
     /**
      * Fetches the number of entries of the resultset.
      * @return integer.
@@ -175,6 +181,10 @@ class SQLQuery {
         }
 
         $sql .= $this->getQuery();
+
+        if ($this->settings['superquery']) {
+            $sql = str_replace("{{query}}", "(" . $sql . ")", $this->settings['superquery']);
+        }
 
         $statement = \DBManager::get()->prepare($sql);
         $statement->execute((array) $this->settings['parameter']);

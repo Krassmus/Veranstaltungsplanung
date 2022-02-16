@@ -32,21 +32,19 @@ class VPCourseConflictsFilter implements VPFilter
     {
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_CONFLICTS', Request::get("course_conflicts"));
         if (Request::get("course_conflicts")) {
-            $query->join(
-                "termine2",
-                "termine",
-                "`termine2`.`termin_id` != `termine`.`termin_id`",
-                'LEFT JOIN',
-                'seminare'
-            );
-            $query->join(
-                "seminare",
-                "(`seminare`.`Seminar_id` = `termine`.`range_id` OR `seminare`.`Seminar_id` = `termine2`.`range_id`)"
-            );
-            $query->where(
-                'conflicting_dates',
-                "((`termine2`.`date` <= `termine`.`date` AND `termine2`.`end_time` >= `termine`.`date`) OR (`termine2`.`date` <= `termine`.`end_time` AND `termine2`.`end_time` >= `termine`.`end_time`) OR (`termine2`.`date` <= `termine`.`end_time` AND `termine2`.`date` >= `termine`.`date`))"
-            );
+            //Wir verdoppeln die Query und joinen sie mit sich selbst, um die Konflikte zu finden:
+            $query->addSurroundingQuery('
+                SELECT DISTINCT `date1`.*
+                FROM {{query}} AS `date1`
+                    INNER JOIN {{query}} AS `date2` ON (
+                        `date2`.`termin_id` != `date1`.`termin_id`
+                        AND (
+                            (`date2`.`date` <= `date1`.`date` AND `date2`.`end_time` >= `date1`.`date`)
+                            OR (`date2`.`date` <= `date1`.`end_time` AND `date2`.`end_time` >= `date1`.`end_time`)
+                            OR (`date2`.`date` <= `date1`.`end_time` AND `date2`.`date` >= `date1`.`date`)
+                        )
+                    )
+            ');
         }
 
 
