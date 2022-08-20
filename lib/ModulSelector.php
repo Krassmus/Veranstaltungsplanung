@@ -47,7 +47,8 @@ class ModulSelector extends SidebarWidget
             $layout = $GLOBALS['template_factory']->open($this->layout);
             $layout->base_class = "sidebar";
             $layout->title = $this->title;
-            $layout->layout_css_classes = $this->layout_css_classes;
+            $layout->layout_css_classes = (array) $this->layout_css_classes;
+            $layout->additional_attributes = [];
             $this->template->set_layout($layout);
         }
         return $this->template->render();
