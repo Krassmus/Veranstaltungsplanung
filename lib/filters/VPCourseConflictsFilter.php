@@ -39,9 +39,9 @@ class VPCourseConflictsFilter implements VPFilter
                     INNER JOIN {{query}} AS `date2` ON (
                         `date2`.`termin_id` != `date1`.`termin_id`
                         AND (
-                            (`date2`.`date` <= `date1`.`date` AND `date2`.`end_time` >= `date1`.`date`)
-                            OR (`date2`.`date` <= `date1`.`end_time` AND `date2`.`end_time` >= `date1`.`end_time`)
-                            OR (`date2`.`date` <= `date1`.`end_time` AND `date2`.`date` >= `date1`.`date`)
+                            (`date2`.`date` < `date1`.`date` AND `date2`.`end_time` > `date1`.`date`)
+                            OR (`date2`.`date` < `date1`.`end_time` AND `date2`.`end_time` > `date1`.`end_time`)
+                            OR (`date2`.`date` < `date1`.`end_time` AND `date2`.`date` > `date1`.`date`)
                         )
                     )
             ');

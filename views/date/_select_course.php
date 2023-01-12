@@ -10,7 +10,12 @@
         <option value=""> - </option>
         <? foreach ($courses as $course) : ?>
             <option value="<?= htmlReady($course->getId()) ?>"<?= $course->getId() === $date['range_id'] ? " selected" : "" ?>>
-                <?= htmlReady($course->getFullName()) ?>
+                <?
+                $teachingload = $controller->getCourseTeachingload($course);
+                $minutes = floor($teachingload / 60) % 60;
+                $hours = floor($teachingload / 60 / 60);
+                ?>
+                <?= htmlReady($course->getFullName() . ' ('.$hours.':'.($minutes < 10 ? '0' : '').$minutes.' '._('Stunden').')') ?>
             </option>
         <? endforeach ?>
     </select>

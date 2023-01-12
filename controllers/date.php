@@ -136,6 +136,15 @@ class DateController extends PluginController
 
     }
 
+    public function getCourseTeachingload(Course $course)
+    {
+        $seconds = 0;
+        foreach ($course->dates as $date) {
+            $seconds += $date['end_time'] - $date['date'];
+        }
+        return $seconds;
+    }
+
     protected function setAvailableRooms()
     {
         if (Config::get()->RESOURCES_ENABLE) {
