@@ -21,10 +21,16 @@ class VPSemesterFilter implements VPFilter
      */
     public function getSidebarWidget($index)
     {
+        $semester_ids = json_decode($GLOBALS['user']->cfg->MY_COURSES_SELECTED_SEMESTERS, true);
+        if (!$semester_ids) {
+            $semester_ids = [];
+        }
         $semester_select = new SelectWidget(
             _("Semester"),
             PluginEngine::getURL("veranstaltungsplanung/planer/change_type"),
-            "semester_id"
+            "semester_id",
+            'get',
+            true
         );
         $semester_select->addLayoutCSSClass("courses");
         $semester_select->addElement(new SelectElement(
@@ -37,21 +43,24 @@ class VPSemesterFilter implements VPFilter
             $semester_select->addElement(new SelectElement(
                 $semester->getId(),
                 $semester['name'],
-                $semester->getId() === $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE),
+                in_array($semester->getId(), $semester_ids),
                 'select-'.$semester->getId()
-            );
+            ));
         }
         return $semester_select;
     }
 
     public function applyFilter($index, \Veranstaltungsplanung\SQLQuery $query)
     {
-        $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', Request::get("semester_id"));
-        if (Request::get("semester_id") && Request::get("semester_id") !== "all") {
-            $semester = Semester::find(Request::get("semester_id"));
-            $query->where("semester_select", "`seminare`.`start_time` <= :semester_start AND (`seminare`.`duration_time` = -1 OR `seminare`.`duration_time` + `seminare`.`start_time` >= :semester_start OR (`seminare`.`duration_time` = '0' AND `seminare`.`start_time` = :semester_start))", [
-                'semester_start' => $semester['beginn']
-            ]);
+        $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_SEMESTERS', Request::get("semester_id"));
+        if (Request::get("semester_id")) {
+            $semester_ids = json_decode(Request::get("semester_id"), true);
+            if (count($semester_ids)) {
+                $query->join('semester_courses', '`semester_courses`.`course_id` = `seminare`.`Seminar_id`');
+                $query->where("semester_select", "`semester_courses`.`semester_id` IN (:semester_ids)", [
+                    'semester_ids' => $semester_ids
+                ]);
+            }
         }
     }
 }
