@@ -105,15 +105,15 @@ STUDIP.Veranstaltungsplanung.appendFragment = function () {
 STUDIP.Veranstaltungsplanung.rearrangeSidebar = function () {
     var object_type = jQuery(".change_type").val();
     if (object_type !== "courses") {
-        jQuery(".sidebar-widget.courses").hide();
+        jQuery("#sidebar-widget.courses, .sidebar-widget.courses").hide();
     }
     if (object_type !== "persons") {
-        jQuery(".sidebar-widget.persons").hide();
+        jQuery("#sidebar-widget.persons, .sidebar-widget.persons").hide();
     }
     if (object_type !== "resources") {
-        jQuery(".sidebar-widget.resources").hide();
+        jQuery("#sidebar-widget.resources, .sidebar-widget.resources").hide();
     }
-    jQuery(".sidebar-widget." + object_type).show();
+    jQuery("#sidebar-widget." + object_type + ", .sidebar-widget." + object_type).show();
 };
 
 STUDIP.Veranstaltungsplanung.reloadCalendar = function () {
@@ -195,16 +195,16 @@ jQuery(function () {
         var params = fragment[i].split("=");
         if (params[0]) {
             jQuery("#" + params[0]).val(decodeURIComponent(params[1]));
-            jQuery(".sidebar select[name=" + params[0] + "], .sidebar input[name=" + params[0] + "]").val(decodeURIComponent(params[1]));
-            jQuery(".sidebar select[name=" + params[0] + "], .sidebar input[name=" + params[0] + "]").trigger("change");
+            jQuery("#sidebar select[name=" + params[0] + "], #sidebar input[name=" + params[0] + "], .sidebar select[name=" + params[0] + "], .sidebar input[name=" + params[0] + "]").val(decodeURIComponent(params[1]));
+            jQuery("#sidebar select[name=" + params[0] + "], #sidebar input[name=" + params[0] + "], .sidebar select[name=" + params[0] + "], .sidebar input[name=" + params[0] + "]").trigger("change");
         }
     }
 
-    jQuery(".sidebar form").on("submit", function () {
+    jQuery("#sidebar form, .sidebar form").on("submit", function () {
         return false;
     });
     jQuery(".change_type").on("change", STUDIP.Veranstaltungsplanung.rearrangeSidebar);
-    jQuery(".sidebar select, .sidebar input[name]").on("change", function () {
+    jQuery("#sidebar select, #sidebar input[name], .sidebar select, .sidebar input[name]").on("change", function () {
         var name = jQuery(this).attr("name").replace(/\[\]/, "");
         var val = jQuery(this).val();
         if (val && typeof val === "object") {
