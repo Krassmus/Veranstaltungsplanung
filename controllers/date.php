@@ -46,6 +46,11 @@ class DateController extends PluginController
                     "seminare",
                     "veranstaltungsplanung_courses"
                 );
+                $query->join(
+                    "termine",
+                    "`seminare`.`Seminar_id` = `termine`.`range_id`",
+                    'LEFT JOIN'
+                );
                 $query->groupBy("`seminare`.`Seminar_id`");
                 $query->orderBy("`seminare`.name ASC");
 
@@ -402,6 +407,7 @@ class DateController extends PluginController
                 }
             }
 
+
             //Unregelmäßiger Termin
             if (!$was_new && $had_metadate && !Request::option("metadate")) {
                 //Regelmäßigen Termin löschen:
@@ -413,7 +419,7 @@ class DateController extends PluginController
             }
 
             $this->date['autor_id'] = $GLOBALS['user']->id;
-            if (Request::option("resource_id")) {
+            if (Request::option("resource_id") && Request::option("resource_id") !== 'no') {
                 $this->date['raum'] = null;
             }
             if ($data['date_typ']) {

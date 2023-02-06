@@ -12,6 +12,7 @@ require_once __DIR__."/lib/filters/VPCourseModulFilter.php";
 require_once __DIR__."/lib/filters/VPCourseFachsemesterFilter.php";
 require_once __DIR__."/lib/filters/VPCourseConflictsFilter.php";
 require_once __DIR__."/lib/filters/VPCourseVisibilityFilter.php";
+require_once __DIR__."/lib/filters/VPCourseNeedsroomFilter.php";
 require_once __DIR__."/lib/filters/VPCourseDatafieldsFilter.php";
 
 require_once __DIR__."/lib/filters/VPUserUserFilter.php";
