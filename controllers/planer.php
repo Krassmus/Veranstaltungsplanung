@@ -25,6 +25,23 @@ class PlanerController extends PluginController
 
     public function index_action()
     {
+        if (!$GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_OBJECT_TYPE) {
+            //first visit:
+            $config = UserConfig::get();
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_HIDDENDAYS', json_encode([6, 0]));
+            $disable_filter = [
+                'module_ids',
+                'fachsemester'
+            ];
+            foreach (DataField::getDataFields('sem') as $datafield) {
+                $disable_filter[] = 'datafield_'.$datafield->getId();
+            }
+            foreach (DataField::getDataFields('user') as $datafield) {
+                $disable_filter[] = 'datafield_'.$datafield->getId();
+            }
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_DISABLED_FILTER', json_encode($disable_filter));
+        }
+
         Navigation::activateItem("/browse/va_planer");
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/veranstaltungsplanung.js");
         PageLayout::addScript($this->plugin->getPluginURL() . "/assets/fullcalendar/packages/core/main.js");
