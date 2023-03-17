@@ -271,8 +271,8 @@ jQuery(function () {
         weekNumbers: true,
         firstDay: 1,
         hiddenDays: STUDIP.Veranstaltungsplanung.hidden_days,
-        height: '80vh',
-        snapDuration: '00:05:00',
+        height: '95vh',
+        snapDuration: '00:' + (STUDIP.Veranstaltungsplanung.timegrid < 10 ? '0' : '') + STUDIP.Veranstaltungsplanung.timegrid + ':00',
         weekends: true,
         minTime: $("#mintime").val() || '00:00:00',
         maxTime: $("#maxtime").val() || '24:00:00',
@@ -373,6 +373,7 @@ jQuery(function () {
             let topics_promise = jQuery.Deferred();
             let groups_promise = jQuery.Deferred();
             let teachers_promise = jQuery.Deferred();
+            let rooms_promise = jQuery.Deferred();
             $.ajax({
                 "url": STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/get_contextmenu_items/' + termin_id),
                 'dataType': 'json',
@@ -474,12 +475,39 @@ jQuery(function () {
                         };
                     }
                     groups_promise.resolve(subitems);
+
+                    subitems = {};
+                    for (let i in output.rooms) {
+                        subitems['resource_' + output.rooms[i].resource_id] = {
+                            'name': output.rooms[i].name,
+                            'type': 'radio',
+                            'selected': output.rooms[i].active,
+                            'disabled': output.rooms[i].disabled ? true : false,
+                            'value': output.rooms[i].resource_id,
+                            'events': {
+                                change: function () {
+                                    let resource_id = $(this).val();
+                                    $.post(STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/date/use_room/' + termin_id), {
+                                        'resource_id': resource_id
+                                    });
+                                }
+                            }
+                        };
+                    }
+                    if (Object.keys(subitems).length === 0) {
+                        subitems.room_noroom = {
+                            'name': 'Kein Raum',
+                            'disabled': true
+                        };
+                    }
+                    rooms_promise.resolve(subitems);
                 }
             });
             return {
                 'topics': topics_promise.promise(),
                 'groups': groups_promise.promise(),
-                'teachers': teachers_promise.promise()
+                'teachers': teachers_promise.promise(),
+                'rooms': rooms_promise.promise()
             };
         };
 
@@ -543,6 +571,13 @@ jQuery(function () {
                             return 'context-menu-icon context-menu-icon-groups';
                         },
                         items: contents.groups
+                    };
+                    items.rooms = {
+                        name: 'Raum',
+                        icon: function () {
+                            return 'context-menu-icon context-menu-icon-rooms';
+                        },
+                        items: contents.rooms
                     };
                     items.topics = {
                         name: "Themen",

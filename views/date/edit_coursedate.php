@@ -122,13 +122,21 @@
                             <? if ($room_search): ?>
                                 <?= $room_search->render() ?>
                             <? else: ?>
+                                <?
+                                $begin = new DateTime();
+                                $begin->setTimestamp($date['date']);
+                                $end = new DateTime();
+                                $end->setTimestamp($date['end_time']);
+                                ?>
                                 <select name="resource_id"
                                         onchange="$('#vplaner_resource_id_cycledate').val('')"
                                         id="vplaner_resource_id"
                                     <?= ($editable ? "" : "readonly") ?> style="width: calc(100% - 23px);">
                                     <option value="no"><?= _('<em>Keinen</em> Raum buchen') ?></option>
                                     <? foreach ($selectable_rooms as $room): ?>
-                                        <option value="<?= htmlReady($room->id) ?>"<?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
+                                        <option value="<?= htmlReady($room->id) ?>"
+                                                <?= $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>
+                                                <?= $room->isAssigned($begin, $end, [$date->room_booking ? $date->room_booking->id : 'no']) ? 'disabled' : ''?>>
                                             <?= htmlReady($room->name) ?>
                                             <? if ($room->seats > 1) : ?>
                                                 <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>
@@ -164,7 +172,9 @@
                                     <option value=""><?= $difference ? _('Unterschiedliche Werte') : '' ?></option>
                                     <option value="no"><?= _('<em>Keinen</em> Raum buchen') ?></option>
                                     <? foreach ($selectable_rooms as $room): ?>
-                                        <option value="<?= htmlReady($room->id) ?>"<?= !$difference && $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>>
+                                        <option value="<?= htmlReady($room->id) ?>"
+                                                <?= !$difference && $date->room_booking && ($date->room_booking['resource_id'] === $room->id) ? " selected" : "" ?>
+                                            <?= $room->isAssigned($begin, $end, [$date->room_booking ? $date->room_booking->id : 'no']) ? 'disabled' : ''?>>
                                             <?= htmlReady($room->name) ?>
                                             <? if ($room->seats > 1) : ?>
                                                 <?= sprintf(_('(%d Sitzplätze)'), $room->seats) ?>

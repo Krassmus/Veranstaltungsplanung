@@ -42,6 +42,19 @@
         </div>
 
         <label>
+            <?= _("Zeitraster Drag & Drop in Minuten") ?>
+
+            <select name="timegrid">
+                <option value="1" <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID == 1 ? 'selected' : '' ?>>1</option>
+                <option value="2" <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID == 2 ? 'selected' : '' ?>>2</option>
+                <option value="5" <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID == 5 || !$GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID ? 'selected' : '' ?>>5</option>
+                <option value="10" <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID == 10 ? 'selected' : '' ?>>10</option>
+                <option value="15" <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID == 15 ? 'selected' : '' ?>>15</option>
+                <option value="30" <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID == 30 ? 'selected' : '' ?>>30</option>
+            </select>
+        </label>
+
+        <label>
             <?= _("Tage verstecken") ?>
             <div>
                 <? $days = $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ? json_decode($GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS, true) : [] ?>

@@ -175,5 +175,20 @@ form.default {
     .context-menu-icon-groups:not(.context-menu-icon-loading).context-menu-hover::before {
         .background-icon('group2', 'info_alt');
     }
+    .context-menu-icon-rooms:not(.context-menu-icon-loading)::before {
+        .background-icon('room', 'clickable');
+    }
+    .context-menu-icon-rooms:not(.context-menu-icon-loading).context-menu-hover::before {
+        .background-icon('room', 'info_alt');
+    }
 
+}
+
+#plugin-veranstaltungsplanung-planer-index {
+    .reset-search {
+        display: none;
+    }
+    button[type=submit].button {
+        display: none;
+    }
 }

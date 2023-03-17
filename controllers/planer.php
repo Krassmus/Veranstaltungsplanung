@@ -554,6 +554,7 @@ class PlanerController extends PluginController
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_LINE2', Request::get("line2"));
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_MINTIME', Request::get("mintime"));
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_MAXTIME', Request::get("maxtime"));
+            $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_TIMEGRID', Request::get("timegrid"));
 
             $GLOBALS['user']->cfg->store(
                 'VERANSTALTUNGSPLANUNG_HIDDENDAYS',

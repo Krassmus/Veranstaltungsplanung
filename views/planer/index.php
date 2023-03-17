@@ -4,6 +4,7 @@
     }
     STUDIP.Veranstaltungsplanung.hidden_days = <?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_HIDDENDAYS ?: "[]" ?>;
     STUDIP.Veranstaltungsplanung.defaultView = '<?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_DEFAULTVIEW ?: "timeGridWeek" ?>';
+    STUDIP.Veranstaltungsplanung.timegrid = '<?= $GLOBALS['user']->cfg->VERANSTALTUNGSPLANUNG_TIMEGRID ?: '5' ?>';
     <? if ($print) : ?>
     window.setTimeout(function () {
         window.print();

@@ -519,7 +519,8 @@ class DateController extends PluginController
         $output = [
             'topics' => [],
             'teachers' => [],
-            'groups' => []
+            'groups' => [],
+            'rooms' => []
         ];
         foreach ($coursedate->course->topics as $topic) {
             $active = false;
@@ -565,6 +566,28 @@ class DateController extends PluginController
                 'user_id' => $member['user_id'],
                 'name' => $member->user->getFullName(),
                 'active' => $active
+            ];
+        }
+        $begin = new DateTime();
+        $begin->setTimestamp($coursedate['date']);
+        $end = new DateTime();
+        $end->setTimestamp($coursedate['end_time']);
+        $output['rooms'][] = [
+            'resource_id' => 'no',
+            'name' => _('Kein Raum'),
+            'active' => $coursedate->room_booking ? false : true,
+            'disabled' => false
+        ];
+        foreach (Room::findAll() as $room) {
+            $output['rooms'][] = [
+                'resource_id' => $room->id,
+                'name' => $room['name'],
+                'active' => $coursedate->room_booking && $coursedate->room_booking->resource_id === $room->id,
+                'disabled' => $room->isAssigned(
+                    $begin,
+                    $end,
+                    [$coursedate->room_booking ? $coursedate->room_booking->id : 'no']
+                )
             ];
         }
         $this->render_json($output);
@@ -688,6 +711,21 @@ class DateController extends PluginController
                     'termin_id' => $coursedate->getId(),
                     'statusgruppe_id' => $statusgruppe->getId()
                 ]);
+            }
+        }
+        $this->render_nothing();
+    }
+
+    public function use_room_action(CourseDate $coursedate)
+    {
+        if (Request::isPost()) {
+            if (Request::option("resource_id") !== 'no') {
+                $singledate = new SingleDate($coursedate);
+                $singledate->bookRoom(
+                    Request::option("resource_id")
+                );
+            } elseif ($coursedate->room_booking) {
+                $coursedate->room_booking->delete();
             }
         }
         $this->render_nothing();
