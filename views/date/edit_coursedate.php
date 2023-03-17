@@ -70,7 +70,7 @@
                                         <?= ($editable ? "" : "readonly") ?>>
 
                                     <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
-                                        <option <?= $date['date_typ'] == $key ? 'selected' : '' ?>
+                                        <option <?= ($date['date_typ'] == $key || ($date->isNew() && $GLOBALS['user']->cfg->VPLANER_DEFAULT_DATETYPE == $key)) ? 'selected' : '' ?>
                                             value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>
                                     <? endforeach ?>
                                 </select>
@@ -106,7 +106,7 @@
                                     <?= ($editable ? "" : "readonly") ?>>
                                 <option value=""><?= $difference ? _('Unterschiedliche Werte') : '' ?></option>
                                 <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
-                                    <option <?= !$difference && ($key == $date['date_typ']) ? 'selected' : '' ?>
+                                    <option <?= !$difference && ($key == $date['date_typ'] || ($date->isNew() && $GLOBALS['user']->cfg->VPLANER_DEFAULT_DATETYPE == $key)) ? 'selected' : '' ?>
                                         value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>
                                 <? endforeach ?>
                             </select>

@@ -29,10 +29,7 @@ class PlanerController extends PluginController
             //first visit:
             $config = UserConfig::get();
             $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_HIDDENDAYS', json_encode([6, 0]));
-            $disable_filter = [
-                'module_ids',
-                'fachsemester'
-            ];
+            $disable_filter = [];
             foreach (DataField::getDataFields('sem') as $datafield) {
                 $disable_filter[] = 'datafield_'.$datafield->getId();
             }

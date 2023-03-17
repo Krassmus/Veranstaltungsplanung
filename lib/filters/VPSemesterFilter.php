@@ -56,8 +56,13 @@ class VPSemesterFilter implements VPFilter
         if (Request::get("semester_id")) {
             $semester_ids = json_decode(Request::get("semester_id"), true);
             if (count($semester_ids)) {
-                $query->join('semester_courses', '`semester_courses`.`course_id` = `seminare`.`Seminar_id`');
-                $query->where("semester_select", "`semester_courses`.`semester_id` IN (:semester_ids)", [
+                $query->join(
+                    'semester_courses',
+                    'semester_courses',
+                    '`semester_courses`.`course_id` = `seminare`.`Seminar_id`',
+                    'LEFT JOIN'
+                );
+                $query->where("semester_select", "`semester_courses`.`semester_id` IN (:semester_ids) OR `semester_courses`.`semester_id` IS NULL", [
                     'semester_ids' => $semester_ids
                 ]);
             }

@@ -275,6 +275,7 @@ class DateController extends PluginController
                 if ($data['end_time']) {
                     $data['end_time'] = strtotime($data['end_time']);
                 }
+                $GLOBALS['user']->cfg->store('VPLANER_DEFAULT_DATETYPE', $data['date_typ']);
                 $this->date->setData($data);
             }
         } else {
