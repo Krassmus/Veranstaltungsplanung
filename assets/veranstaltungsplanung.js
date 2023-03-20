@@ -282,7 +282,7 @@ jQuery(function () {
         timezone: 'local',
         eventRender: function(info) {
             $(info.el)
-                .attr("title", info.event._def.title)
+                .attr("title", info.event._def.extendedProps.description)
                 .data('id', info.event._def.publicId);
         },
         eventClick: function (info) {
@@ -314,52 +314,55 @@ jQuery(function () {
         editable: jQuery("#editable").val() ? true : false,
         defaultDate: jQuery("#calendar").data("default_date") ? jQuery("#calendar").data("default_date") : "now",
         locale: "de",
-        events: {
-            url: STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/fetch_dates'),
-            method: 'POST',
-            extraParams: STUDIP.Veranstaltungsplanung.getCurrentParameters,
-            failure: function() {
-                alert('there was an error while fetching events!');
-            },
-            success: function (events) {
-                if ($('#print').val()) {
-                    //calculate minTime and maxTime depending on the displayed events:
-                    let mintime = 8 * 60 * 60;
-                    let maxtime = 16 * 60 * 60;
-                    let start = null;
-                    let end = null;
-                    for (let event of events) {
-                        start = new Date(event.start);
-                        mintime = Math.min(mintime, start.getSeconds() + 60 * start.getMinutes() + 60 * 60 * start.getHours());
-                        end = new Date(event.end);
-                        maxtime = Math.max(maxtime, end.getSeconds() + 60 * end.getMinutes() + 60 * 60 * end.getHours());
-                    }
+        events: function (info, successCallback, failureCallback) {
+            $.ajax({
+                url: STUDIP.URLHelper.getURL('plugins.php/veranstaltungsplanung/planer/fetch_dates'),
+                type: 'post',
+                data: Object.assign(STUDIP.Veranstaltungsplanung.getCurrentParameters(), {
+                    start: info.start / 1000,
+                    end: info.end / 1000
+                }),
+                dataType: 'json',
+                success: function (output) {
+                    if ($('#print').val()) {
+                        //calculate minTime and maxTime depending on the displayed events:
+                        let mintime = 8 * 60 * 60;
+                        let maxtime = 16 * 60 * 60;
+                        let start = null;
+                        let end = null;
+                        for (let event of output.data) {
+                            start = new Date(event.start);
+                            mintime = Math.min(mintime, start.getSeconds() + 60 * start.getMinutes() + 60 * 60 * start.getHours());
+                            end = new Date(event.end);
+                            maxtime = Math.max(maxtime, end.getSeconds() + 60 * end.getMinutes() + 60 * 60 * end.getHours());
+                        }
 
-                    mintime = (Math.floor(mintime / 3600) < 10 ? "0" : "")
-                        + Math.floor(mintime / 3600)
-                        + ":"
-                        + (Math.floor((mintime / 60) % 60) < 10 ? "0" : "")
-                        + Math.floor((mintime / 60) % 60)
-                        + ":"
-                        + (mintime % 3600 < 10 ? "0" : "")
-                        + mintime % 3600;
-                    maxtime = (Math.floor(maxtime / 3600) < 10 ? "0" : "")
-                        + Math.floor(maxtime / 3600)
-                        + ":"
-                        + (Math.floor((maxtime / 60) % 60) < 10 ? "0" : "")
-                        + Math.floor((maxtime / 60) % 60)
-                        + ":"
-                        + (maxtime % 3600 < 10 ? "0" : "")
-                        + maxtime % 3600;
-                    if (mintime != STUDIP.Veranstaltungsplanung.calendar.getOption('minTime')) {
-                        STUDIP.Veranstaltungsplanung.calendar.setOption('minTime', mintime);
+                        mintime = (Math.floor(mintime / 3600) < 10 ? "0" : "")
+                            + Math.floor(mintime / 3600)
+                            + ":"
+                            + (Math.floor((mintime / 60) % 60) < 10 ? "0" : "")
+                            + Math.floor((mintime / 60) % 60)
+                            + ":"
+                            + (mintime % 3600 < 10 ? "0" : "")
+                            + mintime % 3600;
+                        maxtime = (Math.floor(maxtime / 3600) < 10 ? "0" : "")
+                            + Math.floor(maxtime / 3600)
+                            + ":"
+                            + (Math.floor((maxtime / 60) % 60) < 10 ? "0" : "")
+                            + Math.floor((maxtime / 60) % 60)
+                            + ":"
+                            + (maxtime % 3600 < 10 ? "0" : "")
+                            + maxtime % 3600;
+                        if (mintime != STUDIP.Veranstaltungsplanung.calendar.getOption('minTime')) {
+                            STUDIP.Veranstaltungsplanung.calendar.setOption('minTime', mintime);
+                        }
+                        if (maxtime != STUDIP.Veranstaltungsplanung.calendar.getOption('maxTime')) {
+                            STUDIP.Veranstaltungsplanung.calendar.setOption('maxTime', maxtime);
+                        }
                     }
-                    if (maxtime != STUDIP.Veranstaltungsplanung.calendar.getOption('maxTime')) {
-                        STUDIP.Veranstaltungsplanung.calendar.setOption('maxTime', maxtime);
-                    }
+                    successCallback(output.data);
                 }
-            },
-            textColor: 'black' // a non-ajax option
+            });
         }
     });
 

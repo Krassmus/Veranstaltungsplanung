@@ -83,14 +83,17 @@ class PlanerController extends PluginController
 
     public function fetch_dates_action()
     {
-        $start = strtotime(Request::get("start"));
-        $end = strtotime(Request::get("end"));
+        $start = Request::int("start", strtotime(Request::get('start')));
+        $end = Request::int("end", strtotime(Request::get('end')));
         $object_type = Request::get("object_type") ?: "courses";
 
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_DEFAULTDATE', $start + floor(($end - $start) / 2));
         $GLOBALS['user']->cfg->store('VERANSTALTUNGSPLANUNG_OBJECT_TYPE', $object_type);
 
-        $termine = [];
+        $output = [
+            'data' => [],
+            'objects' => []
+        ];
         $query = new \Veranstaltungsplanung\SQLQuery(
             "termine",
             "veranstaltungsplanung_termine"
@@ -156,7 +159,6 @@ class PlanerController extends PluginController
             $colorizerindex = "standard";
         }
 
-
         foreach ($query->fetchAll("CourseDate") as $termin) {
 
             $title = (string) $termin->course['name'];
@@ -176,9 +178,15 @@ class PlanerController extends PluginController
             $editable = !Veranstaltungsplanung::isReadOnly()
                 && $GLOBALS['perm']->have_studip_perm("tutor", $termin['range_id'])
                 && !LockRules::Check($termin['range_id'], 'room_time');
-            $termine[] = [
+            $description = $termin->course['name'];
+            $description .= "\n"._('Raum').": ".($termin->room_booking ? $termin->room_booking->resource['name'] : ($termin['raum'] ?: _('Kein Raum')));
+            $description .= "\n"._('Gruppen').": ".(implode(", ", $termin->statusgruppen->pluck('name')) ?: _('Keine'));
+            $description .= "\n"._('Durchführend').": ".(implode(", ", $termin->dozenten->getFullName()) ?: _('Alle'));
+            $description .= "\n"._('Thema').": ".(implode(", ", $termin->topics->pluck('title')) ?: _('Ohne Thema'));
+            $output['data'][] = [
                 'id' => "termine_".$termin->getId(),
                 'title' => $title,
+                'description' => $description,
                 'editable' => $editable,
                 'start' => date("c", $termin['date']),
                 'end' => date("c", $termin['end_time']),
@@ -186,7 +194,8 @@ class PlanerController extends PluginController
                 'classNames' => [
                     "course_".$termin['range_id'],
                     $termin['metadate_id'] ? "dateseries" : "singledate"
-                ]
+                ],
+                'textColor' => 'black'
             ];
         }
 
@@ -240,14 +249,16 @@ class PlanerController extends PluginController
 
                     foreach ($list as $calendar_event) {
                         if (is_a($calendar_event, "CalendarEvent")) {
-                            $termine[] = [
+                            $output['data'][] = [
                                 'id' => "eventdata_" . $calendar_event->getUId(),
                                 'title' => $calendar_event->getName() . ": " . $calendar_event->getTitle(),
+                                'description' => $calendar_event->getName() . ": " . $calendar_event->getTitle(),
                                 'start' => date("c", $calendar_event->getStart()),
                                 'end' => date("c", $calendar_event->getEnd()),
                                 'editable' => false,
                                 'backgroundColor' => $colorizer->getColor($colorizerindex, $calendar_event),
-                                'classNames' => ["event_data"]
+                                'classNames' => ["event_data"],
+                                'textColor' => 'black'
                             ];
                         }
                     }
@@ -310,9 +321,10 @@ class PlanerController extends PluginController
                 $editable = !Veranstaltungsplanung::isReadOnly()
                     && $GLOBALS['perm']->have_studip_perm("tutor", $termin['range_id'])
                     && !LockRules::Check($termin['range_id'], 'room_time');
-                $termine[] = [
+                $output['data'][] = [
                     'id' => "termine_".$termin->getId(),
                     'title' => $title,
+                    'description' => $title,
                     'start' => date("c", $termin['date']),
                     'editable' => $editable,
                     'end' => date("c", $termin['end_time']),
@@ -321,14 +333,15 @@ class PlanerController extends PluginController
                         "course_".$termin['range_id'],
                         $termin['metadate_id'] ? "dateseries" : "singledate",
                         "open_request"
-                    ]
+                    ],
+                    'textColor' => 'black'
                 ];
             }
         }
 
         //manage background colors:
         $backgrounds = [];
-        foreach ($termine as $key => $termin) {
+        foreach ($output['data'] as $key => $termin) {
             if ($backgrounds[$termin['backgroundColor']]) {
                 $backgrounds[$termin['backgroundColor']]++;
             } else {
@@ -348,14 +361,14 @@ class PlanerController extends PluginController
             "#28497c"
         ];
 
-        foreach ($termine as $key => $termin) {
+        foreach ($output['data'] as $key => $termin) {
             if (is_numeric($termin['backgroundColor'])
                 && $termin['backgroundColor'] < count($commoncolors)) {
-                $termine[$key]['backgroundColor'] = $commoncolors[$termin['backgroundColor']];
+                $output['data'][$key]['backgroundColor'] = $commoncolors[$termin['backgroundColor']];
             }
         }
 
-        foreach ($termine as $key => $termin) {
+        foreach ($output['data'] as $key => $termin) {
             $background_hsl = Color::hsl($termin['backgroundColor']);
 
             //now analyze the ligting of the background and make the font white if the background is dark:
@@ -363,11 +376,11 @@ class PlanerController extends PluginController
             array_shift($matches);
             $light = $matches[2];
             if ($light < 0.6) {
-                $termine[$key]['textColor'] = "#ffffff";
+                $output['data'][$key]['textColor'] = "#ffffff";
             }
         }
 
-        $this->render_json($termine);
+        $this->render_json($output);
     }
 
     public function get_collisions_action() {
