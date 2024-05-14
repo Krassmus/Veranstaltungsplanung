@@ -97,8 +97,8 @@ class Veranstaltungsplanung extends StudIPPlugin implements SystemPlugin
 
     public function perform($unconsumed_path)
     {
-        $this->addStylesheet("assets/veranstaltungsplanung.less");
-        $this->addStylesheet("assets/study-area-tree.less");
+        $this->addStylesheet("assets/veranstaltungsplanung.scss");
+        $this->addStylesheet("assets/study-area-tree.scss");
         parent::perform($unconsumed_path);
     }
 }

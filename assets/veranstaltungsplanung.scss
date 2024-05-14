@@ -9,12 +9,12 @@
     .fc-button {
         border-radius: 0px;
         background-color: white;
-        color: @origin-base-color;
-        border-color: @origin-base-color;
+        color: var(--origin-base-color);
+        border-color: var(--origin-base-color);
         margin-top: 0px;
 
         &:hover {
-            background-color: @origin-base-color;
+            background-color: var(--origin-base-color);
             color: white;
         }
     }
@@ -25,16 +25,16 @@
     }
     .fc-event {
         border-radius: 0px;
-        border: solid @content-color-60 1px;
-        background-color: @content-color-20;
+        border: solid var(--content-color-60) 1px;
+        background-color: var(--content-color-20);
         &.singledate {
 
         }
         &.dateseries {
-            background-color: @green-20;
+            background-color: var(--green-20);
         }
         &.event_data {
-            background-color: @violet-40;
+            background-color: var(--violet-40);
         }
         &.open_request {
             opacity: 0.4;
@@ -54,31 +54,31 @@
 
 .jquery_tabs {
     &.ui-widget.ui-widget-content {
-        border: 1px solid @base-color-20;
+        border: 1px solid var(--base-color-20);
     }
     &.ui-tabs {
         padding: 0px;
     }
     .ui-widget-header {
-        background-color: @content-color-20;
+        background-color: var(--content-color-20);
     }
     .ui-button, .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, html .ui-button.ui-state-disabled:active, html .ui-button.ui-state-disabled:hover {
         background-color: transparent;
         border: none;
-        color: @origin-base-color;
+        color: var(--origin-base-color);
         font-weight: 700;
     }
     .ui-autocomplete .ui-state-hover, .ui-state-active, .ui-state-focus, .ui-state-hover, .ui-state-hover:hover, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
         background-color: white;
         border: none;
-        color: @origin-base-color;
+        color: var(--origin-base-color);
     }
     .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
-        color: @origin-base-color;
+        color: var(--origin-base-color);
         font-weight: 700;
     }
     .ui-button, .ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button {
-        color: @origin-base-color;
+        color: var(--origin-base-color);
         font-size: 1.1em;
         font-weight: 700;
     }
@@ -129,7 +129,7 @@ form.default {
 
 .context-menu-root {
     .context-menu-item.context-menu-hover {
-        background-color: @base-color;
+        background-color: var(--base-color);
         color: white;
     }
     .context-menu-icon:not(.context-menu-icon-loading)::before {
@@ -140,46 +140,46 @@ form.default {
     }
 
     .context-menu-icon-edit::before {
-        .background-icon('edit', 'clickable');
+        @include background-icon(edit, clickable);
     }
     .context-menu-icon-edit.context-menu-hover::before {
-        .background-icon('edit', 'info_alt');
+        @include background-icon(edit, info_alt);
     }
     .context-menu-icon-cancel::before {
-        .background-icon('decline', 'clickable');
+        @include background-icon(decline, clickable);
     }
     .context-menu-icon-cancel.context-menu-hover::before {
-        .background-icon('decline', 'info_alt');
+        @include background-icon(decline, info_alt);
     }
     .context-menu-icon-delete::before {
-        .background-icon('trash', 'clickable');
+        @include background-icon(trash, clickable);
     }
     .context-menu-icon-delete.context-menu-hover::before {
-        .background-icon('trash', 'info_alt');
+        @include background-icon(trash, info_alt);
     }
     .context-menu-icon-topic:not(.context-menu-icon-loading)::before {
-        .background-icon('topic', 'clickable');
+        @include background-icon(topic, clickable);
     }
     .context-menu-icon-topic:not(.context-menu-icon-loading).context-menu-hover::before {
-        .background-icon('topic', 'info_alt');
+        @include background-icon(topic, info_alt);
     }
     .context-menu-icon-teacher:not(.context-menu-icon-loading)::before {
-        .background-icon('person', 'clickable');
+        @include background-icon(person, clickable);
     }
     .context-menu-icon-teacher:not(.context-menu-icon-loading).context-menu-hover::before {
-        .background-icon('person', 'info_alt');
+        @include background-icon(person, info_alt);
     }
     .context-menu-icon-groups:not(.context-menu-icon-loading)::before {
-        .background-icon('group2', 'clickable');
+        @include background-icon(group2, clickable);
     }
     .context-menu-icon-groups:not(.context-menu-icon-loading).context-menu-hover::before {
-        .background-icon('group2', 'info_alt');
+        @include background-icon(group2, info_alt);
     }
     .context-menu-icon-rooms:not(.context-menu-icon-loading)::before {
-        .background-icon('room', 'clickable');
+        @include background-icon(room, clickable);
     }
     .context-menu-icon-rooms:not(.context-menu-icon-loading).context-menu-hover::before {
-        .background-icon('room', 'info_alt');
+        @include background-icon(room, info_alt);
     }
 
 }

@@ -4,9 +4,9 @@
         padding: 0px;
 
         > li {
-            .flex();
-            .flex-justify-content(space-between);
-            .flex-align-items(flex-start);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
 
             margin-bottom: 2px;
             margin-left: 20px;
@@ -29,9 +29,9 @@
         }
     }
     .up {
-        .flex();
-        .flex-justify-content(space-between);
-        .flex-align-items(flex-start);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
         .unsetter {
             display: inline-block;
             width: 20px;
