@@ -205,27 +205,27 @@ class PlanerController extends PluginController
                 "persons"
             );
             $query->join(
-                "calendar_event",
-                "`calendar_event`.`range_id` = `auth_user_md5`.`user_id`"
+                "calendar_date_assignments",
+                "`calendar_date_assignments`.`range_id` = `auth_user_md5`.`user_id`"
             );
             $query->join(
-                "event_data",
-                "`event_data`.`event_id` = `calendar_event`.`event_id`"
+                "calendar_dates",
+                "`calendar_dates`.`id` = `calendar_date_assignments`.`calendar_date_id`"
             );
             $query->where("time", "(
                     (
-                        `event_data`.`rtype` = 'SINGLE'
+                        `calendar_dates`.`repetition_type` = 'SINGLE'
                         AND (
-                            (`event_data`.`start` <= :start AND `event_data`.`end` >= :start)
-                            OR (`event_data`.`start` <= :end AND `event_data`.`end` >= :end)
-                            OR (`event_data`.`start` >= :start AND `event_data`.`end` <= :end)
+                            (`calendar_dates`.`begin` <= :start AND `calendar_dates`.`end` >= :start)
+                            OR (`calendar_dates`.`begin` <= :end AND `calendar_dates`.`end` >= :end)
+                            OR (`calendar_dates`.`begin` >= :start AND `calendar_dates`.`end` <= :end)
                         )
                     ) OR (
-                        `event_data`.`rtype` != 'SINGLE'
+                        `calendar_dates`.`repetition_type` != 'SINGLE'
                         AND (
-                            (`event_data`.`start` <= :start AND `event_data`.`expire` >= :start)
-                            OR (`event_data`.`start` <= :end AND `event_data`.`expire` >= :end)
-                            OR (`event_data`.`start` >= :start AND `event_data`.`expire` <= :end)
+                            (`calendar_dates`.`begin` <= :start AND `calendar_dates`.`repetition_end` >= :start)
+                            OR (`calendar_dates`.`begin` <= :end AND `calendar_dates`.`repetition_end` >= :end)
+                            OR (`calendar_dates`.`begin` >= :start AND `calendar_dates`.`repetition_end` <= :end)
                         )
                     )
                 )", [
